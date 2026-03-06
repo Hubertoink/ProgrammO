@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "programmo/weekplan",
+    "version": "0.2",
+    "title": "ProgrammO Wochenplan",
+    "category": "widgets",
+    "icon": "schedule",
+    "description": "Zeigt den dynamischen Wochenplan des Jugendhauses an — mit Offenen Bereichen, Angeboten und Team-Info.",
+    "keywords": [ "wochenplan", "jugendhaus", "programm", "schedule", "programmo" ],
+    "textdomain": "programmo",
+    "supports": {
+        "html": false,
+        "align": [ "wide", "full" ],
+        "className": true,
+        "anchor": true,
+        "color": {
+            "background": false,
+            "text": false
+        },
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    },
+    "attributes": {
+        "title": {
+            "type": "string",
+            "default": ""
+        },
+        "showValidFrom": {
+            "type": "boolean",
+            "default": true
+        },
+        "showTeam": {
+            "type": "boolean",
+            "default": true
+        },
+        "showBadges": {
+            "type": "boolean",
+            "default": true
+        },
+        "showDetails": {
+            "type": "boolean",
+            "default": true
+        },
+        "columns": {
+            "type": "number",
+            "default": 0
+        },
+        "overrideDays": {
+            "type": "array",
+            "default": [],
+            "items": {
+                "type": "string"
+            }
+        },
+        "compactMode": {
+            "type": "boolean",
+            "default": false
+        },
+        "mobileCollapse": {
+            "type": "boolean",
+            "default": true
+        },
+        "enablePdfExport": {
+            "type": "boolean",
+            "default": false
+        },
+        "showGrain": {
+            "type": "boolean",
+            "default": false
+        },
+        "showTooltips": {
+            "type": "boolean",
+            "default": true
+        },
+        "backUrl": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "editorScript": "programmo-block-editor",
+    "style": "programmo-frontend"
+}

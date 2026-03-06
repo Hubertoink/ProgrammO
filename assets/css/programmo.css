@@ -1,0 +1,1766 @@
+/* ================================================================
+   ProgrammO – Wochenplan Frontend (Layered Canva Logic)
+   ================================================================ */
+
+/* ---- Wrapper ---- */
+.programmo-weekplan {
+    position: relative;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    font-family: inherit;
+    container-type: inline-size;
+    container-name: programmo;
+}
+
+/* ---- Header (title + valid badge) ---- */
+.programmo-weekplan__header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+/* ---- Title ---- */
+.programmo-weekplan__title {
+    font-size: 2.4em;
+    font-weight: 900;
+    margin: 0;
+    color: inherit;
+}
+
+.programmo-weekplan__valid {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 4px 12px;
+    white-space: nowrap;
+    translate: 0 -2px;
+}
+
+.programmo-weekplan__pdf-export {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    line-height: 1;
+    color: #ffffff;
+    background: linear-gradient(90deg, #2d8ae7, #62c8e0);
+    box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.programmo-weekplan__pdf-export svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    stroke: #ffffff;
+    fill: none;
+    flex-shrink: 0;
+}
+
+.programmo-weekplan__pdf-export:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+
+.programmo-weekplan__pdf-export:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.programmo-export-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100001;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.24s ease, visibility 0s linear 0.24s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.programmo-export-modal[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+.programmo-export-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 12, 20, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.programmo-export-modal__content {
+    --pem-bg: #ffffff;
+    --pem-text: #1d2327;
+    --pem-toolbar-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --pem-toolbar-text: #f1f5f9;
+    --pem-toolbar-sub: rgba(241, 245, 249, 0.55);
+    --pem-border: rgba(0, 0, 0, 0.06);
+    --pem-plan-bg: #f8fafc;
+    --pem-shadow: rgba(0, 0, 0, 0.32);
+    --pem-btn-bg: rgba(255, 255, 255, 0.1);
+    --pem-btn-text: #f1f5f9;
+    --pem-btn-border: rgba(255, 255, 255, 0.15);
+    --pem-btn-primary-bg: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    --pem-btn-primary-text: #fff;
+    --pem-btn-primary-shadow: rgba(59, 130, 246, 0.4);
+    position: relative;
+    z-index: 2;
+    width: min(1060px, 92vw);
+    max-height: 82vh;
+    background: var(--pem-bg);
+    border-radius: 16px;
+    box-shadow:
+        0 24px 64px -12px var(--pem-shadow),
+        0 0 0 1px rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    color: var(--pem-text);
+    animation: pem-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pem-slide-up {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.programmo-export-modal__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--pem-toolbar-bg);
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+.programmo-export-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--pem-toolbar-text);
+    letter-spacing: 0.01em;
+}
+
+.programmo-export-modal__title::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: currentColor;
+    opacity: 0.85;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E") center/contain no-repeat;
+    flex-shrink: 0;
+}
+
+.programmo-export-modal__actions {
+    display: inline-flex;
+    gap: 10px;
+}
+
+.programmo-export-modal__actions .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--pem-btn-border);
+    background: var(--pem-btn-bg);
+    color: var(--pem-btn-text);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.programmo-export-modal__actions .button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.programmo-export-modal__actions .button-primary {
+    background: var(--pem-btn-primary-bg);
+    color: var(--pem-btn-primary-text);
+    border-color: transparent;
+    box-shadow: 0 4px 14px -4px var(--pem-btn-primary-shadow);
+}
+
+.programmo-export-modal__actions .button-primary:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -4px var(--pem-btn-primary-shadow);
+}
+
+.programmo-export-modal__plan {
+    overflow: auto;
+    background: var(--pem-plan-bg);
+    padding: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.programmo-export-modal__plan .programmo-weekplan {
+    container-type: normal;
+    container-name: none;
+    --programmo-day-height: 88px;
+    --programmo-slot-height: 124px;
+}
+
+.programmo-export-modal__plan .programmo-weekrow {
+    min-height: calc(var(--programmo-slot-height) + 8px);
+    margin-bottom: 4px;
+}
+
+.programmo-export-modal__plan .programmo-weekrow__day {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: var(--programmo-day-height);
+    margin-top: 0;
+}
+
+.programmo-export-modal__plan .programmo-weekrow__slots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc((var(--programmo-day-height) - var(--programmo-slot-height)) / 2);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 12px;
+    padding-left: 220px;
+    padding-right: 8px;
+    margin-top: 0;
+    max-height: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    overflow: visible;
+}
+
+.programmo-export-modal__plan .programmo-weekrow__chevron {
+    display: none;
+}
+
+.programmo-export-modal__plan .programmo-slot {
+    min-width: 0;
+    max-width: none;
+    flex: 1 1 0;
+    padding-left: 28px;
+}
+
+.programmo-export-modal__plan .programmo-slot__time {
+    font-size: clamp(1rem, 1.2vw + 0.45rem, 1.5rem);
+}
+
+.programmo-export-modal__plan .programmo-slot__offer {
+    min-height: 34px;
+    font-size: clamp(1rem, 1vw + 0.45rem, 1.2rem);
+}
+
+.programmo-export-modal__plan .programmo-slot__area {
+    left: 0;
+}
+
+.programmo-export-modal__plan .programmo-slot__area span {
+    display: block;
+}
+
+.programmo-export-modal__plan .programmo-slot__area-mobile {
+    display: none;
+}
+
+.programmo-export-modal__plan .programmo-weekplan__pdf-export {
+    display: none;
+}
+
+/* ---- Export modal: mobile responsive (screen only, not print) ---- */
+@media screen and (max-width: 680px) {
+    .programmo-export-modal__content {
+        width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .programmo-export-modal__toolbar {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px 8px;
+    }
+
+    .programmo-export-modal__title {
+        font-size: 0.72rem;
+        flex: 1 1 100%;
+    }
+
+    .programmo-export-modal__actions .button {
+        font-size: 0.68rem;
+        padding: 4px 8px;
+    }
+
+    .programmo-export-modal__plan {
+        padding: 4px;
+    }
+
+    /* Switch to grid-based flow layout on mobile (no absolute positioning) */
+    .programmo-export-modal__plan .programmo-weekplan {
+        --programmo-day-height: auto;
+        --programmo-slot-height: auto;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow {
+        display: grid !important;
+        grid-template-columns: 90px 1fr;
+        align-items: stretch;
+        gap: 3px;
+        min-height: 0 !important;
+        margin-bottom: 3px;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow__day {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        min-height: 0 !important;
+        padding: 6px 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow__day > span,
+    .programmo-export-modal__plan .programmo-weekrow__toggle > span:first-child {
+        font-size: 0.62rem;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow__slots {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 3px;
+        padding: 0 !important;
+        margin: 0 !important;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        overflow: visible;
+        max-height: none;
+    }
+
+    .programmo-export-modal__plan .programmo-slot {
+        padding: 4px 4px 4px 14px;
+        min-height: 0;
+        min-width: 0;
+        height: auto;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__header {
+        padding: 1px 1px 2px;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__time {
+        font-size: 0.6rem;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__age {
+        font-size: 0.48rem;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__people {
+        gap: 2px;
+        margin-bottom: 2px;
+    }
+
+    .programmo-export-modal__plan .programmo-person-badge {
+        font-size: 0.48rem;
+        padding: 1px 4px;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__offers {
+        gap: 2px;
+        padding: 1px 1px 2px;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__offer {
+        min-height: 20px;
+        padding: 3px 6px;
+        font-size: 0.56rem;
+        border-radius: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__area {
+        width: 14px;
+        left: 0;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__area span {
+        font-size: 0.36rem;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .programmo-export-modal__plan .programmo-weekrow {
+        grid-template-columns: 70px 1fr;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow__day > span,
+    .programmo-export-modal__plan .programmo-weekrow__toggle > span:first-child {
+        font-size: 0.52rem;
+    }
+
+    .programmo-export-modal__plan .programmo-weekrow__slots {
+        grid-template-columns: 1fr;
+    }
+
+    .programmo-export-modal__plan .programmo-slot {
+        padding-left: 12px;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__time {
+        font-size: 0.54rem;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__offer {
+        min-height: 16px;
+        font-size: 0.5rem;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__area {
+        width: 12px;
+        left: 0;
+    }
+
+    .programmo-export-modal__plan .programmo-slot__area span {
+        font-size: 0.32rem;
+    }
+}
+
+/* ---- Export modal: Dark-mode support ---- */
+@media (prefers-color-scheme: dark) {
+    html:not([data-neve-theme]) .programmo-export-modal__content {
+        --pem-bg: #111827;
+        --pem-text: #e0e4ea;
+        --pem-toolbar-bg: linear-gradient(135deg, #0c1220 0%, #162033 100%);
+        --pem-toolbar-text: #e2e8f0;
+        --pem-toolbar-sub: rgba(226, 232, 240, 0.45);
+        --pem-border: rgba(255, 255, 255, 0.06);
+        --pem-plan-bg: #0f172a;
+        --pem-shadow: rgba(0, 0, 0, 0.6);
+        --pem-btn-bg: rgba(255, 255, 255, 0.07);
+        --pem-btn-text: #e2e8f0;
+        --pem-btn-border: rgba(255, 255, 255, 0.1);
+        --pem-btn-primary-shadow: rgba(59, 130, 246, 0.35);
+    }
+}
+
+html[data-neve-theme="dark"] .programmo-export-modal__content,
+body.dark-mode .programmo-export-modal__content,
+body.flavor-dark .programmo-export-modal__content,
+body.ast-dark-mode .programmo-export-modal__content,
+body[data-theme="dark"] .programmo-export-modal__content {
+    --pem-bg: #111827;
+    --pem-text: #e0e4ea;
+    --pem-toolbar-bg: linear-gradient(135deg, #0c1220 0%, #162033 100%);
+    --pem-toolbar-text: #e2e8f0;
+    --pem-toolbar-sub: rgba(226, 232, 240, 0.45);
+    --pem-border: rgba(255, 255, 255, 0.06);
+    --pem-plan-bg: #0f172a;
+    --pem-shadow: rgba(0, 0, 0, 0.6);
+    --pem-btn-bg: rgba(255, 255, 255, 0.07);
+    --pem-btn-text: #e2e8f0;
+    --pem-btn-border: rgba(255, 255, 255, 0.1);
+    --pem-btn-primary-shadow: rgba(59, 130, 246, 0.35);
+}
+
+/* ---- Week row: day tile is base layer, area/offer cards above ---- */
+.programmo-weekrow {
+    position: relative;
+    --programmo-day-height: 132px;
+    --programmo-slot-height: 156px;
+    min-height: calc(var(--programmo-slot-height) + 10px);
+    margin-bottom: 6px;
+}
+
+.programmo-weekrow--offers-3plus {
+    --programmo-slot-height: 172px;
+    min-height: calc(var(--programmo-slot-height) + 18px);
+    margin-bottom: 12px;
+}
+
+.programmo-weekrow--offers-5plus {
+    --programmo-slot-height: 188px;
+    min-height: calc(var(--programmo-slot-height) + 22px);
+    margin-bottom: 16px;
+}
+
+.programmo-weekrow__day {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: var(--programmo-day-height);
+    background: linear-gradient(135deg, #2279d4 0%, #2d8ae7 40%, #4cc0e8 100%);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px 24px;
+    border-radius: 6px 0 0 6px;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.25);
+}
+
+.programmo-weekrow__day > span,
+.programmo-weekrow__toggle > span:first-child {
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    font-size: clamp(1.1rem, 2.6cqw, 2.1rem);
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(0, 40, 80, 0.35);
+}
+
+.programmo-weekrow__toggle {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+.programmo-weekrow__toggle:hover,
+.programmo-weekrow__toggle:focus-visible {
+    background: transparent;
+}
+
+.programmo-weekrow__toggle:active {
+    background: transparent;
+}
+
+.programmo-weekrow__chevron {
+    color: #ffffff;
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.9;
+    transition: transform 0.3s ease;
+    display: none;
+}
+
+.programmo-weekrow__slots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc((var(--programmo-day-height) - var(--programmo-slot-height)) / 2);
+    z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(8px, 2cqw, 28px);
+    padding-left: clamp(150px, 28cqw, 380px);
+    padding-right: 10px;
+    min-height: 0;
+}
+
+/* ---- Offener-Bereich card (above day tile) ---- */
+.programmo-slot {
+    position: relative;
+    z-index: 4;
+    flex: 1;
+    min-width: clamp(110px, 20cqw, 220px);
+    min-height: var(--programmo-slot-height);
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px 6px 28px;
+    border-radius: 4px;
+    box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.22),
+                0 2px 4px -1px rgba(0, 0, 0, 0.12);
+}
+
+.programmo-weekplan--grain .programmo-weekrow__day,
+.programmo-weekplan--grain .programmo-slot {
+    overflow: hidden;
+}
+
+/* Subtle noise / grain texture overlay (opt-in via --grain modifier) */
+.programmo-weekplan--grain .programmo-weekrow__day::before,
+.programmo-weekplan--grain .programmo-slot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0.22;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: normal;
+    background-image:
+        radial-gradient(circle at 17% 23%, rgba(255, 255, 255, 0.3) 0 0.35px, transparent 0.48px),
+        radial-gradient(circle at 63% 71%, rgba(0, 0, 0, 0.24) 0 0.3px, transparent 0.44px),
+        radial-gradient(circle at 34% 57%, rgba(255, 255, 255, 0.2) 0 0.28px, transparent 0.42px),
+        radial-gradient(circle at 81% 29%, rgba(0, 0, 0, 0.16) 0 0.24px, transparent 0.38px);
+    background-size: 2px 2px, 2.7px 2.7px, 3.3px 3.3px, 4.1px 4.1px;
+    background-position: 0 0, 1px 1px, 0.6px 1.2px, 1.7px 0.4px;
+}
+
+.programmo-weekplan--grain .programmo-slot__header,
+.programmo-weekplan--grain .programmo-slot__offers,
+.programmo-weekplan--grain .programmo-weekrow__day > span,
+.programmo-weekplan--grain .programmo-weekrow__toggle > span:first-child,
+.programmo-weekplan--grain .programmo-weekrow__chevron {
+    position: relative;
+    z-index: 2;
+}
+
+.programmo-weekplan--grain .programmo-slot__area {
+    z-index: 2;
+}
+
+.programmo-slot__area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    gap: 0;
+}
+
+.programmo-slot__area span {
+    color: #001927;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.programmo-slot__header {
+    position: relative;
+    padding: 0 2px 8px;
+    margin: 0 -10px 0 -28px;
+    padding: 0 10px 8px 28px;
+}
+
+.programmo-slot__area-mobile {
+    display: none;
+}
+
+.programmo-slot__people {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    margin: -3px 0 6px;
+}
+
+.programmo-person-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #2f8ce8, #1a6bc4);
+    color: #ffffff;
+    border-radius: 0 0 6px 6px;
+    padding: 6px 10px 5px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    box-shadow: 0 1px 4px -1px rgba(0, 60, 120, 0.3);
+    letter-spacing: 0.02em;
+}
+
+.programmo-slot__time {
+    color: #0a1520;
+    font-size: clamp(0.9rem, 1.2cqw + 0.5rem, 1.85rem);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin-bottom: 1px;
+}
+
+.programmo-slot__age {
+    display: block;
+    font-size: clamp(0.68rem, 0.42cqw + 0.56rem, 0.9rem);
+    font-weight: 700;
+    opacity: 0.6;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+    margin-bottom: 6px;
+}
+
+/* ---- Offers on area cards (not full width) ---- */
+.programmo-slot__offers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 2px 0;
+    align-content: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.programmo-slot--offers-3plus {
+    padding-bottom: 2px;
+}
+
+.programmo-slot--offers-3plus .programmo-slot__people {
+    margin: -5px 0 4px;
+}
+
+.programmo-slot--offers-3plus .programmo-slot__offers {
+    gap: 3px;
+    padding: 0 1px 0;
+    margin-bottom: -2px;
+}
+
+.programmo-slot--offers-3plus .programmo-slot__offer {
+    flex: 1 1 calc(50% - 1.5px);
+    min-height: 24px;
+    padding: 4px 10px;
+    font-size: clamp(0.95rem, 1.2cqw + 0.46rem, 1.45rem);
+    line-height: 1.02;
+}
+
+.programmo-slot--offers-5plus {
+    padding-bottom: 0;
+}
+
+.programmo-slot--offers-5plus .programmo-slot__offers {
+    gap: 2px;
+    margin-bottom: -4px;
+}
+
+.programmo-slot--offers-5plus .programmo-slot__offer {
+    min-height: 22px;
+    padding: 3px 8px;
+    font-size: clamp(0.9rem, 1.05cqw + 0.45rem, 1.32rem);
+}
+
+.programmo-slot__offer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 calc(50% - 2px);
+    min-width: 100px;
+    max-width: 100%;
+    padding: 6px 12px;
+    border-radius: 6px;
+    min-height: 30px;
+    text-align: center;
+    font-size: clamp(1.05rem, 1.4cqw + 0.5rem, 1.7rem);
+    font-weight: 800;
+    color: #ffffff;
+    text-decoration: none;
+    line-height: 1.05;
+    border: 0;
+    cursor: pointer;
+    appearance: none;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease,
+                filter 0.2s ease;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.18);
+}
+
+/* Subtle highlight on hover */
+.programmo-slot__offer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0);
+    transition: background 0.2s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.programmo-slot__offer:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.28);
+    filter: brightness(1.05);
+    color: #ffffff;
+    text-decoration: none;
+    z-index: 5;
+}
+
+.programmo-slot__offer:hover::after {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.programmo-slot__offer:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.22);
+    filter: brightness(1.02);
+    transition-duration: 0.08s;
+}
+
+a.programmo-slot__offer:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.programmo-slot__offer:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 2px;
+}
+
+/* ---- Hover Tooltip (desktop only) ---- */
+.programmo-tooltip {
+    position: absolute;
+    z-index: 100005;
+    width: 280px;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100%) translateY(-10px);
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+    font-family: inherit;
+}
+
+.programmo-tooltip[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.programmo-tooltip__image-wrap {
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    max-height: 120px;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.programmo-tooltip__image {
+    display: block;
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.programmo-tooltip__body {
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 12px 14px;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.programmo-tooltip__image-wrap[hidden] + .programmo-tooltip__body {
+    border-radius: 12px;
+}
+
+.programmo-tooltip__title {
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.programmo-tooltip__meta {
+    color: rgba(148, 200, 255, 0.85);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.programmo-tooltip__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.programmo-tooltip__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    letter-spacing: 0.02em;
+}
+
+.programmo-tooltip__badge--person {
+    --badge-person-color: #ff6b6b;
+    background: var(--badge-person-color);
+}
+
+.programmo-tooltip__excerpt {
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Hide tooltip in print / export / mobile */
+@media screen and (max-width: 900px) {
+    .programmo-tooltip { display: none !important; }
+}
+body.programmo-export-printing .programmo-tooltip { display: none !important; }
+
+/* ---- Offer modal ---- */
+html {
+    scrollbar-gutter: stable;
+}
+
+.programmo-modal-open {
+    overflow: hidden;
+    padding-right: 0;
+}
+
+.programmo-offer-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100010;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.34s ease, visibility 0s linear 0.34s;
+}
+
+.programmo-offer-modal[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+.programmo-offer-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 16, 24, 0.62);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.34s ease;
+}
+
+.programmo-offer-modal__content {
+    --programmo-offer-modal-pad: 18px;
+    position: relative;
+    background: #ffffff;
+    color: #1d2327;
+    border-radius: 14px;
+    width: min(560px, 92vw);
+    max-height: 88vh;
+    overflow: auto;
+    padding: var(--programmo-offer-modal-pad) var(--programmo-offer-modal-pad) 16px;
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    transition: opacity 0.34s ease, transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.programmo-offer-modal[aria-hidden="false"] .programmo-offer-modal__backdrop {
+    opacity: 1;
+}
+
+.programmo-offer-modal[aria-hidden="false"] .programmo-offer-modal__content {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition-delay: 0.04s;
+}
+
+.programmo-offer-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    transition: color 0.15s, transform 0.15s;
+}
+
+.programmo-offer-modal__close::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M18 6L6 18M6 6l12 12'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M18 6L6 18M6 6l12 12'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.programmo-offer-modal__close:hover {
+    color: #1d2327;
+    transform: scale(1.12);
+}
+
+.programmo-offer-modal__close:focus-visible {
+    outline: 2px solid #2d8ae7;
+    outline-offset: 2px;
+}
+
+.programmo-offer-modal__image-wrap {
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
+    margin: calc(-1 * var(--programmo-offer-modal-pad)) calc(-1 * var(--programmo-offer-modal-pad)) 10px;
+    max-height: 220px;
+}
+
+.programmo-offer-modal__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.programmo-offer-modal__title {
+    margin: 0 30px 6px 0;
+    font-size: clamp(1.2rem, 1.2vw + 0.9rem, 1.7rem);
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.programmo-offer-modal__meta {
+    margin: 0 0 8px;
+    color: var(--pm-muted, #5d6974);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.programmo-offer-modal__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.programmo-offer-modal__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #fff;
+    background: #6b7280;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* Person badge: filled with custom person color from badge data */
+.programmo-offer-modal__badge--person {
+    --badge-person-color: #ff6b6b;
+    background: var(--badge-person-color);
+    color: #fff;
+    padding: 6px 14px;
+    box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.42);
+}
+
+.programmo-offer-modal__excerpt {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--pm-excerpt, #1d2327);
+}
+
+.programmo-offer-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.programmo-offer-modal__more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(90deg, #2d8ae7, #62c8e0);
+}
+
+.programmo-offer-modal__more:hover {
+    color: #ffffff;
+    text-decoration: none;
+    filter: brightness(1.04);
+}
+
+/* ---- Empty state ---- */
+.programmo-empty {
+    padding: 14px;
+    border: 1px solid #d6e7f2;
+    border-radius: 8px;
+}
+
+/* ---- Compact mode ---- */
+.programmo-weekplan--compact .programmo-weekrow {
+    --programmo-day-height: 96px;
+    --programmo-slot-height: 128px;
+    min-height: calc(var(--programmo-slot-height) + 8px);
+}
+
+.programmo-weekplan--compact .programmo-weekrow__day {
+    min-height: 64px;
+    padding: 10px 16px;
+}
+
+.programmo-weekplan--compact .programmo-weekrow__day span {
+    font-size: clamp(0.85rem, 2.1cqw, 1.45rem);
+}
+
+.programmo-weekplan--compact .programmo-weekrow__slots {
+    padding-left: clamp(130px, 24cqw, 320px);
+    gap: clamp(4px, 1.5cqw, 8px);
+}
+
+.programmo-weekplan--compact .programmo-slot {
+    min-width: 180px;
+    padding: 0 8px 8px 28px;
+}
+
+.programmo-weekplan--compact .programmo-slot__time {
+    font-size: clamp(0.9rem, 1vw + 0.42rem, 1.22rem);
+}
+
+.programmo-weekplan--compact .programmo-slot__offer {
+    min-height: 28px;
+    padding: 6px 10px;
+    font-size: clamp(1.05rem, 1.4cqw + 0.42rem, 1.5rem);
+    border-radius: 4px;
+}
+
+.programmo-weekplan--compact .programmo-person-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px 2px;
+}
+
+/* ---- Responsive (screen only – must not affect print) ---- */
+@media screen and (max-width: 900px) {
+    .programmo-weekrow {
+        min-height: 0;
+        margin-bottom: 10px;
+    }
+
+    .programmo-weekrow__day {
+        position: relative;
+        min-height: 56px;
+        margin-top: 8px;
+    }
+
+    .programmo-weekrow__day > span,
+    .programmo-weekrow__toggle > span:first-child {
+        font-size: 1.2rem;
+    }
+
+    .programmo-weekrow__toggle {
+        min-height: 56px;
+    }
+
+    .programmo-weekrow__chevron {
+        display: inline;
+        font-size: 1.6rem;
+    }
+
+    .programmo-weekrow__slots {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        padding: 0;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .programmo-slot {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+        box-sizing: border-box;
+        padding-left: 30px;
+    }
+
+    .programmo-slot__area {
+        left: 0;
+    }
+
+    .programmo-slot__area span {
+        display: none;
+    }
+
+    .programmo-slot__header {
+        padding-right: 130px;
+    }
+
+    .programmo-slot__area-mobile {
+        display: inline-flex;
+        position: absolute;
+        top: 2px;
+        right: 6px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: rgba(0, 25, 39, 0.78);
+        white-space: nowrap;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow {
+        margin-bottom: 12px;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow__slots {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: max-height 0.44s ease, opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow.is-open .programmo-weekrow__slots {
+        max-height: 2000px;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition: max-height 0.52s ease, opacity 0.34s ease, transform 0.34s ease, visibility 0s linear 0s;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow__slots .programmo-slot {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow.is-open .programmo-weekrow__slots .programmo-slot {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 0.06s;
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow__chevron {
+        transform: rotate(-90deg);
+    }
+
+    .programmo-weekplan--mobile-collapse .programmo-weekrow.is-open .programmo-weekrow__chevron {
+        transform: rotate(0deg);
+    }
+
+    .programmo-offer-modal__content {
+        --programmo-offer-modal-pad: 14px;
+        width: min(540px, 95vw);
+        padding: var(--programmo-offer-modal-pad) var(--programmo-offer-modal-pad) 12px;
+    }
+
+    .programmo-offer-modal__title {
+        margin-right: 36px;
+    }
+}
+
+/* ---- Gutenberg block wrapper ---- */
+.wp-block-programmo-weekplan {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ================================================================
+   Container-query overrides
+   When the weekplan sits inside a narrow column on tablet / desktop
+   keep the full horizontal layout but scale down proportionally.
+   Mobile stacking is handled exclusively by @media screen and (max-width: 900px).
+   ================================================================ */
+@container programmo (max-width: 960px) {
+    .programmo-weekrow {
+        --programmo-day-height: clamp(74px, 14cqw, 132px);
+        --programmo-slot-height: clamp(100px, 18cqw, 156px);
+    }
+
+    .programmo-weekrow__day {
+        padding: clamp(6px, 1.5cqw, 12px) clamp(10px, 2cqw, 24px);
+    }
+
+    .programmo-weekrow__day > span,
+    .programmo-weekrow__toggle > span:first-child {
+        font-size: clamp(0.8rem, 2.8cqw, 1.6rem);
+    }
+
+    .programmo-slot {
+        min-width: clamp(80px, 16cqw, 180px);
+        padding: clamp(0px, 0.45cqw, 6px) clamp(5px, 1.2cqw, 10px) clamp(5px, 1.2cqw, 10px) clamp(14px, 3.2cqw, 28px);
+    }
+
+    .programmo-slot__time {
+        font-size: clamp(0.78rem, 2.4cqw, 1.6rem);
+    }
+
+    .programmo-slot__age {
+        font-size: 0.58em;
+    }
+
+    .programmo-slot__offer {
+        padding: clamp(4px, 1cqw, 10px) clamp(6px, 1.5cqw, 16px);
+        font-size: clamp(0.92rem, 2.4cqw, 1.5rem);
+        min-height: clamp(22px, 4.5cqw, 36px);
+    }
+
+    .programmo-slot__area span {
+        font-size: clamp(0.44rem, 1cqw, 0.72rem);
+    }
+
+    .programmo-slot__area {
+        width: clamp(14px, 3.2cqw, 28px);
+        left: 0;
+    }
+
+    .programmo-person-badge {
+        font-size: clamp(0.56rem, 1.35cqw, 0.76rem);
+        padding: clamp(2px, 0.45cqw, 4px) clamp(5px, 1cqw, 8px);
+    }
+
+    .programmo-weekplan--compact .programmo-weekrow__slots {
+        padding-left: clamp(100px, 22cqw, 220px);
+    }
+}
+
+/* Keep mobile offer pills visibly larger than container-query scaling (screen only) */
+@media screen and (max-width: 900px) {
+    .programmo-weekrow__day > span,
+    .programmo-weekrow__toggle > span:first-child {
+        font-size: clamp(1.65rem, 6vw, 2.15rem);
+        letter-spacing: 0.01em;
+    }
+
+    .programmo-slot__time {
+        font-size: clamp(1.45rem, 5.4vw, 1.95rem);
+        line-height: 1.08;
+    }
+
+    .programmo-slot__age {
+        font-size: clamp(0.88rem, 2.7vw, 1.06rem);
+        font-weight: 800;
+        display: block;
+    }
+
+    .programmo-slot__people {
+        gap: 4px 6px;
+        margin: -3px 0 5px;
+    }
+
+    .programmo-person-badge {
+        font-size: clamp(0.9rem, 2.8vw, 1.05rem);
+        padding: 5px 10px 4px;
+        border-radius: 0 0 8px 8px;
+        line-height: 1.05;
+    }
+
+    .programmo-slot__offers {
+        gap: 10px;
+        padding: 2px 2px 6px;
+    }
+
+    .programmo-slot__offer {
+        min-height: 52px;
+        padding: 12px 16px;
+        font-size: clamp(1.3rem, 4.5vw, 1.7rem);
+        line-height: 1.04;
+        border-radius: 10px;
+    }
+}
+
+/* ================================================================
+   Theme-specific overrides
+   ================================================================ */
+
+/* --- Neve --- */
+.programmo-theme-neve .nv-post-cover,
+.programmo-theme-neve .nv-single-post-top {
+    display: none !important;
+}
+
+/* --- Astra --- */
+.programmo-theme-astra .ast-single-post-header {
+    display: none !important;
+}
+
+/* --- flavor starter --- */
+.programmo-theme-flavor .flavor-page-header {
+    display: none !important;
+}
+
+/* ================================================================
+   Dark-mode modal overrides
+   Covers: OS prefers-color-scheme, Neve dark toggle, and generic
+   body[class] patterns used by popular themes.
+   ================================================================ */
+
+/* Dark-mode variables — applied by any matching selector */
+.programmo-offer-modal__content {
+    --pm-bg: #ffffff;
+    --pm-text: #1d2327;
+    --pm-muted: #5d6974;
+    --pm-close: #6b7280;
+    --pm-close-hover: #1d2327;
+    --pm-excerpt: #1d2327;
+    --pm-border: rgba(0, 0, 0, 0.06);
+    --pm-shadow: rgba(0, 0, 0, 0.28);
+    background: var(--pm-bg);
+    color: var(--pm-text);
+    box-shadow: 0 22px 54px var(--pm-shadow);
+}
+.programmo-offer-modal__meta { color: var(--pm-muted); }
+.programmo-offer-modal__excerpt { color: var(--pm-excerpt); }
+.programmo-offer-modal__close { color: var(--pm-close); }
+.programmo-offer-modal__close:hover { color: var(--pm-close-hover); }
+
+/* Dark palette — only for non-Neve sites (Neve uses its own toggle) */
+@media (prefers-color-scheme: dark) {
+    html:not([data-neve-theme]) .programmo-offer-modal__content {
+        --pm-bg: #1e2330;
+        --pm-text: #e8ecf1;
+        --pm-muted: #9ca3af;
+        --pm-close: #9ca3af;
+        --pm-close-hover: #e8ecf1;
+        --pm-excerpt: #d1d5db;
+        --pm-shadow: rgba(0, 0, 0, 0.55);
+    }
+}
+
+/* Neve dark toggle: html[data-neve-theme="dark"], body.dark-mode, etc. */
+html[data-neve-theme="dark"] .programmo-offer-modal__content,
+body.dark-mode .programmo-offer-modal__content,
+body.flavor-dark .programmo-offer-modal__content,
+body.ast-dark-mode .programmo-offer-modal__content,
+body[data-theme="dark"] .programmo-offer-modal__content {
+    --pm-bg: #1e2330;
+    --pm-text: #e8ecf1;
+    --pm-muted: #9ca3af;
+    --pm-close: #9ca3af;
+    --pm-close-hover: #e8ecf1;
+    --pm-excerpt: #d1d5db;
+    --pm-shadow: rgba(0, 0, 0, 0.55);
+}
+
+/* Make the "Mehr erfahren" button slightly brighter in dark mode for contrast */
+@media (prefers-color-scheme: dark) {
+    html:not([data-neve-theme]) .programmo-offer-modal__more {
+        box-shadow: 0 4px 14px -4px rgba(45, 138, 231, 0.4);
+    }
+}
+html[data-neve-theme="dark"] .programmo-offer-modal__more,
+body.dark-mode .programmo-offer-modal__more,
+body[data-theme="dark"] .programmo-offer-modal__more {
+    box-shadow: 0 4px 14px -4px rgba(45, 138, 231, 0.4);
+}
+
+/* ================================================================
+   Print-ready state (activated via body class)
+   These rules apply as REGULAR CSS so mobile browsers pick them up
+   reliably – @media print alone is inconsistent on Android Chrome.
+   ================================================================ */
+
+/* Force color preservation on every descendant */
+body.programmo-export-printing,
+body.programmo-export-printing *,
+body.programmo-export-printing *::before,
+body.programmo-export-printing *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+}
+
+/* Hide everything on the page except the export modal */
+body.programmo-export-printing > *:not(.programmo-export-modal) {
+    display: none !important;
+}
+
+body.programmo-export-printing {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+}
+
+/* Modal: fill page, remove decoration */
+body.programmo-export-printing .programmo-export-modal {
+    position: static !important;
+    display: block !important;
+    inset: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: none !important;
+    z-index: auto !important;
+    width: 100% !important;
+    animation: none !important;
+}
+
+/* Hide backdrop & toolbar */
+body.programmo-export-printing .programmo-export-modal__backdrop,
+body.programmo-export-printing .programmo-export-modal__toolbar {
+    display: none !important;
+}
+
+/* Content card: full width, no shadow/radius/animation */
+body.programmo-export-printing .programmo-export-modal__content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #1d2327 !important;
+    animation: none !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+}
+
+/* Weekplan: reset container queries + full width */
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekplan {
+    container-type: normal !important;
+    container-name: none !important;
+    width: 100% !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekplan__header {
+    justify-content: center !important;
+    margin-bottom: 6px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekplan__title {
+    font-size: 1.6em !important;
+    margin-bottom: 2px !important;
+    color: #1d2327 !important;
+    text-align: center !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekplan__valid {
+    font-size: 0.7rem !important;
+    color: #5d6974 !important;
+    background: #f0f0f0 !important;
+    border-color: #ddd !important;
+    backdrop-filter: none !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekplan__pdf-export {
+    display: none !important;
+}
+
+/* Day rows: CSS Grid, full width */
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow {
+    display: grid !important;
+    grid-template-columns: 140px 1fr !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+    margin-bottom: 2px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__day {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    min-height: 0 !important;
+    border-radius: 4px 0 0 4px !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    background: #2d8ae7 !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__day > span,
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__toggle > span:first-child {
+    font-size: 0.92rem !important;
+    color: #fff !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__toggle {
+    cursor: default !important;
+    pointer-events: none !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__chevron {
+    display: none !important;
+}
+
+/* Slots: side-by-side grid within each row */
+body.programmo-export-printing .programmo-export-modal__plan .programmo-weekrow__slots {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    overflow: visible !important;
+    align-items: stretch !important;
+    max-height: none !important;
+}
+
+/* Slot cards */
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 8px 10px 10px 30px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__area {
+    left: 0 !important;
+    width: 28px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__area span {
+    font-size: 0.5rem !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__header {
+    padding: 3px 3px 6px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__time {
+    font-size: 0.92rem !important;
+    line-height: 1.2 !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__age {
+    font-size: 0.72rem !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__people {
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-person-badge {
+    font-size: 0.68rem !important;
+    padding: 3px 8px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__offers {
+    gap: 5px !important;
+    padding: 2px 2px 4px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__offer {
+    min-height: 30px !important;
+    padding: 6px 10px !important;
+    font-size: 0.82rem !important;
+    border-radius: 5px !important;
+}
+
+body.programmo-export-printing .programmo-export-modal__plan .programmo-slot__area-mobile {
+    display: none !important;
+}
+
+/* ================================================================
+   @media print – only for @page directive & extra hardening
+   ================================================================ */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}

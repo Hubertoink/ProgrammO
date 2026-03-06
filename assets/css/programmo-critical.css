@@ -1,0 +1,291 @@
+/* ================================================================
+   ProgrammO - Critical Frontend CSS
+   Keep this file small: only above-the-fold weekplan layout.
+   ================================================================ */
+
+.programmo-weekplan {
+    position: relative;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    font-family: inherit;
+    container-type: inline-size;
+    container-name: programmo;
+}
+
+.programmo-weekplan__header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.programmo-weekplan__title {
+    font-size: 2.4em;
+    font-weight: 900;
+    margin: 0;
+    color: inherit;
+}
+
+.programmo-weekplan__valid {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 4px 12px;
+    white-space: nowrap;
+    translate: 0 -2px;
+}
+
+.programmo-weekrow {
+    position: relative;
+    --programmo-day-height: 132px;
+    --programmo-slot-height: 156px;
+    min-height: calc(var(--programmo-slot-height) + 10px);
+    margin-bottom: 6px;
+}
+
+.programmo-weekrow__day {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: var(--programmo-day-height);
+    background: linear-gradient(135deg, #2279d4 0%, #2d8ae7 40%, #4cc0e8 100%);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px 24px;
+    border-radius: 6px 0 0 6px;
+}
+
+.programmo-weekrow__day > span,
+.programmo-weekrow__toggle > span:first-child {
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    font-size: clamp(1.1rem, 2.6cqw, 2.1rem);
+    line-height: 1;
+}
+
+.programmo-weekrow__toggle {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+}
+
+.programmo-weekrow__chevron {
+    color: #ffffff;
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.9;
+    display: none;
+}
+
+.programmo-weekrow__slots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc((var(--programmo-day-height) - var(--programmo-slot-height)) / 2);
+    z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(8px, 2cqw, 28px);
+    padding-left: clamp(150px, 28cqw, 380px);
+    padding-right: 10px;
+}
+
+.programmo-slot {
+    position: relative;
+    z-index: 4;
+    flex: 1;
+    min-width: clamp(110px, 20cqw, 220px);
+    min-height: var(--programmo-slot-height);
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px 6px 28px;
+    border-radius: 4px;
+}
+
+.programmo-slot__area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+}
+
+.programmo-slot__area span {
+    color: #001927;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.programmo-slot__header {
+    position: relative;
+    margin: 0 -10px 0 -28px;
+    padding: 0 10px 8px 28px;
+}
+
+.programmo-slot__area-mobile {
+    display: none;
+}
+
+.programmo-slot__people {
+    display: flex;
+    gap: 0 6px;
+    margin: -3px 0 6px;
+}
+
+.programmo-person-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #2f8ce8, #1a6bc4);
+    color: #ffffff;
+    border-radius: 0 0 6px 6px;
+    padding: 6px 10px 5px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.programmo-slot__time {
+    color: #0a1520;
+    font-size: clamp(0.9rem, 1.2cqw + 0.5rem, 1.85rem);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin-bottom: 1px;
+}
+
+.programmo-slot__age {
+    display: block;
+    font-size: clamp(0.68rem, 0.42cqw + 0.56rem, 0.9rem);
+    font-weight: 700;
+    opacity: 0.6;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+    margin-bottom: 6px;
+}
+
+.programmo-slot__offers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 2px 0;
+    align-content: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.programmo-slot__offer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 calc(50% - 2px);
+    min-width: 100px;
+    max-width: 100%;
+    padding: 6px 12px;
+    border-radius: 6px;
+    min-height: 30px;
+    text-align: center;
+    font-size: clamp(1.05rem, 1.4cqw + 0.5rem, 1.7rem);
+    font-weight: 800;
+    color: #ffffff;
+    text-decoration: none;
+    line-height: 1.05;
+    border: 0;
+}
+
+@media screen and (max-width: 900px) {
+    .programmo-weekrow {
+        min-height: 0;
+        margin-bottom: 10px;
+    }
+
+    .programmo-weekrow__day {
+        position: relative;
+        min-height: 56px;
+        margin-top: 8px;
+    }
+
+    .programmo-weekrow__toggle {
+        min-height: 56px;
+    }
+
+    .programmo-weekrow__chevron {
+        display: inline;
+        font-size: 1.6rem;
+    }
+
+    .programmo-weekrow__slots {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        padding: 0;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .programmo-slot {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+        box-sizing: border-box;
+        padding-left: 30px;
+    }
+
+    .programmo-slot__area span {
+        display: none;
+    }
+
+    .programmo-slot__header {
+        padding-right: 130px;
+    }
+
+    .programmo-slot__area-mobile {
+        display: inline-flex;
+        position: absolute;
+        top: 2px;
+        right: 6px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: rgba(0, 25, 39, 0.78);
+        white-space: nowrap;
+    }
+}
