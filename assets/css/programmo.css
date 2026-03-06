@@ -522,22 +522,22 @@ body[data-theme="dark"] .programmo-export-modal__content {
 /* ---- Week row: day tile is base layer, area/offer cards above ---- */
 .programmo-weekrow {
     position: relative;
-    --programmo-day-height: 132px;
-    --programmo-slot-height: 156px;
-    min-height: calc(var(--programmo-slot-height) + 10px);
-    margin-bottom: 6px;
+    --programmo-day-height: 124px;
+    --programmo-slot-height: 148px;
+    min-height: calc(var(--programmo-slot-height) + 8px);
+    margin-bottom: 2px;
 }
 
 .programmo-weekrow--offers-3plus {
-    --programmo-slot-height: 172px;
-    min-height: calc(var(--programmo-slot-height) + 18px);
-    margin-bottom: 12px;
+    --programmo-slot-height: 164px;
+    min-height: calc(var(--programmo-slot-height) + 12px);
+    margin-bottom: 6px;
 }
 
 .programmo-weekrow--offers-5plus {
-    --programmo-slot-height: 188px;
-    min-height: calc(var(--programmo-slot-height) + 22px);
-    margin-bottom: 16px;
+    --programmo-slot-height: 180px;
+    min-height: calc(var(--programmo-slot-height) + 16px);
+    margin-bottom: 8px;
 }
 
 .programmo-weekrow__day {
@@ -697,7 +697,7 @@ body[data-theme="dark"] .programmo-export-modal__content {
     position: relative;
     padding: 0 2px 8px;
     margin: 0 -10px 0 -28px;
-    padding: 0 10px 8px 28px;
+    padding: 0 10px 5px 28px;
 }
 
 .programmo-slot__area-mobile {
@@ -743,7 +743,7 @@ body[data-theme="dark"] .programmo-export-modal__content {
     opacity: 0.6;
     letter-spacing: 0.01em;
     line-height: 1.15;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 }
 
 /* ---- Offers on area cards (not full width) ---- */
@@ -963,7 +963,7 @@ a.programmo-slot__offer:hover {
 }
 
 /* Hide tooltip in print / export / mobile */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1100px) {
     .programmo-tooltip { display: none !important; }
 }
 body.programmo-export-printing .programmo-tooltip { display: none !important; }
@@ -1213,7 +1213,7 @@ html {
 }
 
 /* ---- Responsive (screen only – must not affect print) ---- */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1100px) {
     .programmo-weekrow {
         min-height: 0;
         margin-bottom: 10px;
@@ -1347,7 +1347,7 @@ html {
    Container-query overrides
    When the weekplan sits inside a narrow column on tablet / desktop
    keep the full horizontal layout but scale down proportionally.
-   Mobile stacking is handled exclusively by @media screen and (max-width: 900px).
+    Mobile stacking is handled exclusively by @media screen and (max-width: 1100px).
    ================================================================ */
 @container programmo (max-width: 960px) {
     .programmo-weekrow {
@@ -1403,7 +1403,7 @@ html {
 }
 
 /* Keep mobile offer pills visibly larger than container-query scaling (screen only) */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1100px) {
     .programmo-weekrow__day > span,
     .programmo-weekrow__toggle > span:first-child {
         font-size: clamp(1.65rem, 6vw, 2.15rem);

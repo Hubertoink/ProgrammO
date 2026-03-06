@@ -48,10 +48,10 @@
 
 .programmo-weekrow {
     position: relative;
-    --programmo-day-height: 132px;
-    --programmo-slot-height: 156px;
-    min-height: calc(var(--programmo-slot-height) + 10px);
-    margin-bottom: 6px;
+    --programmo-day-height: 124px;
+    --programmo-slot-height: 148px;
+    min-height: calc(var(--programmo-slot-height) + 8px);
+    margin-bottom: 2px;
 }
 
 .programmo-weekrow__day {
@@ -153,7 +153,7 @@
 .programmo-slot__header {
     position: relative;
     margin: 0 -10px 0 -28px;
-    padding: 0 10px 8px 28px;
+    padding: 0 10px 5px 28px;
 }
 
 .programmo-slot__area-mobile {
@@ -196,7 +196,7 @@
     opacity: 0.6;
     letter-spacing: 0.01em;
     line-height: 1.15;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 }
 
 .programmo-slot__offers {
@@ -228,7 +228,7 @@
     border: 0;
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1100px) {
     .programmo-weekrow {
         min-height: 0;
         margin-bottom: 10px;
