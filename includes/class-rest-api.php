@@ -927,6 +927,9 @@ final class RestApi
             'id'       => (int) $post->ID,
             'title'    => (string) $post->post_title,
             'color'    => (string) get_post_meta($post->ID, '_programmo_program_color', true),
+            'valid_from' => (string) get_post_meta($post->ID, '_programmo_program_valid_from', true),
+            'valid_date_from' => (string) get_post_meta($post->ID, '_programmo_program_valid_date_from', true),
+            'valid_date_until' => (string) get_post_meta($post->ID, '_programmo_program_valid_date_until', true),
             'edit_url' => (string) get_edit_post_link($post->ID, 'raw'),
         ];
     }
@@ -938,6 +941,9 @@ final class RestApi
                 'id' => 0,
                 'title' => __('Standard', 'programmo'),
                 'color' => '',
+                'valid_from' => '',
+                'valid_date_from' => '',
+                'valid_date_until' => '',
                 'edit_url' => '',
             ];
         }
@@ -948,6 +954,9 @@ final class RestApi
                 'id' => $program_id,
                 'title' => '',
                 'color' => '',
+                'valid_from' => '',
+                'valid_date_from' => '',
+                'valid_date_until' => '',
                 'edit_url' => '',
             ];
         }

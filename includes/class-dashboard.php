@@ -394,7 +394,8 @@ final class Dashboard
     public static function sanitize_settings(array $input): array
     {
         $clean = [];
-        $clean['valid_from'] = isset($input['valid_from']) ? sanitize_text_field((string) $input['valid_from']) : '';
+        $valid_from = isset($input['valid_from']) ? sanitize_text_field((string) $input['valid_from']) : '';
+        $clean['valid_from'] = preg_match('/^\d{4}-\d{2}$/', $valid_from) ? $valid_from : '';
         $clean['default_area_color'] = isset($input['default_area_color']) ? sanitize_hex_color((string) $input['default_area_color']) : '#bde9ff';
         $clean['offer_gradient'] = isset($input['offer_gradient']) ? sanitize_text_field((string) $input['offer_gradient']) : '';
 
@@ -424,7 +425,7 @@ final class Dashboard
     {
         $val = self::get_option('valid_from', '');
         echo '<input type="month" name="' . esc_attr(self::OPTION_KEY) . '[valid_from]" value="' . esc_attr($val) . '" class="regular-text">';
-        echo '<p class="description">' . esc_html__('z. B. „2026-01" für „gültig ab Januar 2026". Wird im Frontend als Hinweis angezeigt.', 'programmo') . '</p>';
+        echo '<p class="description">' . esc_html__('z. B. „2026-01" für „gültig ab Januar 2026". Dient als globaler Fallback, wenn ein Programm keinen eigenen Wert gesetzt hat.', 'programmo') . '</p>';
     }
 
     public static function render_field_default_area_color(): void

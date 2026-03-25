@@ -125,6 +125,9 @@ final class Admin
         wp_nonce_field('programmo_program_meta', 'programmo_program_meta_nonce');
 
         $color = (string) get_post_meta($post->ID, '_programmo_program_color', true);
+        $valid_from = (string) get_post_meta($post->ID, '_programmo_program_valid_from', true);
+        $valid_date_from = (string) get_post_meta($post->ID, '_programmo_program_valid_date_from', true);
+        $valid_date_until = (string) get_post_meta($post->ID, '_programmo_program_valid_date_until', true);
         ?>
         <p class="description" style="margin-bottom:12px;">
             <?php esc_html_e('Ein Programm bündelt einen eigenen Wochenplan. Die Farbe hilft bei der Auswahl im Block und im Dashboard.', 'programmo'); ?>
@@ -132,6 +135,21 @@ final class Admin
         <p>
             <label for="programmo_program_color"><strong><?php esc_html_e('Programmfarbe', 'programmo'); ?></strong></label><br>
             <input type="color" id="programmo_program_color" name="programmo_program_color" value="<?php echo esc_attr($color ?: '#2271b1'); ?>" style="width:56px;height:38px;cursor:pointer;">
+        </p>
+        <p>
+            <label for="programmo_program_valid_from"><strong><?php esc_html_e('Gültig ab', 'programmo'); ?></strong></label><br>
+            <input type="month" id="programmo_program_valid_from" name="programmo_program_valid_from" value="<?php echo esc_attr($valid_from); ?>">
+            <span class="description"><?php esc_html_e('Monatsbasierter Fallback für dieses Programm. Wird genutzt, wenn kein konkretes Datum gesetzt ist.', 'programmo'); ?></span>
+        </p>
+        <p>
+            <label for="programmo_program_valid_date_from"><strong><?php esc_html_e('Gültig von', 'programmo'); ?></strong></label><br>
+            <input type="date" id="programmo_program_valid_date_from" name="programmo_program_valid_date_from" value="<?php echo esc_attr($valid_date_from); ?>">
+            <span class="description"><?php esc_html_e('Optionales Startdatum für einen konkreten Gültigkeitszeitraum.', 'programmo'); ?></span>
+        </p>
+        <p>
+            <label for="programmo_program_valid_date_until"><strong><?php esc_html_e('Gültig bis', 'programmo'); ?></strong></label><br>
+            <input type="date" id="programmo_program_valid_date_until" name="programmo_program_valid_date_until" value="<?php echo esc_attr($valid_date_until); ?>">
+            <span class="description"><?php esc_html_e('Optionales Enddatum. Wenn mindestens eines der beiden Datumsfelder gesetzt ist, wird der Badge mit konkreten Daten angezeigt.', 'programmo'); ?></span>
         </p>
         <?php
     }
@@ -305,7 +323,13 @@ final class Admin
         }
 
         $color = isset($_POST['programmo_program_color']) ? sanitize_hex_color((string) wp_unslash($_POST['programmo_program_color'])) : '';
+        $valid_from = isset($_POST['programmo_program_valid_from']) ? self::sanitize_month_value((string) wp_unslash($_POST['programmo_program_valid_from'])) : '';
+        $valid_date_from = isset($_POST['programmo_program_valid_date_from']) ? self::sanitize_date_value((string) wp_unslash($_POST['programmo_program_valid_date_from'])) : '';
+        $valid_date_until = isset($_POST['programmo_program_valid_date_until']) ? self::sanitize_date_value((string) wp_unslash($_POST['programmo_program_valid_date_until'])) : '';
         update_post_meta($post_id, '_programmo_program_color', (string) $color);
+        update_post_meta($post_id, '_programmo_program_valid_from', $valid_from);
+        update_post_meta($post_id, '_programmo_program_valid_date_from', $valid_date_from);
+        update_post_meta($post_id, '_programmo_program_valid_date_until', $valid_date_until);
     }
 
     public static function save_offer_meta(int $post_id): void
@@ -462,5 +486,27 @@ final class Admin
         }
 
         return $items;
+    }
+
+    private static function sanitize_month_value(string $value): string
+    {
+        $value = sanitize_text_field($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        return preg_match('/^\d{4}-\d{2}$/', $value) ? $value : '';
+    }
+
+    private static function sanitize_date_value(string $value): string
+    {
+        $value = sanitize_text_field($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : '';
     }
 }

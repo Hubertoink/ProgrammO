@@ -96,7 +96,7 @@ final class Shortcode
 
         $default_area_color = (string) Dashboard::get_option('default_area_color', '#bde9ff');
         $offer_gradient = (string) Dashboard::get_option('offer_gradient', 'linear-gradient(90deg, #a12ed2, #ff4fa1)');
-        $valid_from = (string) Dashboard::get_option('valid_from', '');
+        $validity_badge = self::resolve_validity_badge($program_id);
         $day_colors = (array) get_option(RestApi::DAY_COLORS_OPTION, []);
 
         $all_slots = get_posts([
@@ -252,18 +252,17 @@ final class Shortcode
         echo '<div class="' . esc_attr($wrapper_class) . '">';
 
         // Title + valid-from header
-        $has_header = ($title !== '') || ($show_valid_from && $valid_from !== '');
+        $has_header = ($title !== '') || ($show_valid_from && $validity_badge !== '');
         if ($has_header) {
             echo '<div class="programmo-weekplan__header">';
             if ($title !== '') {
                 echo '<h2 class="programmo-weekplan__title">' . esc_html($title) . '</h2>';
             }
-            if ($show_valid_from && $valid_from !== '') {
-                $ts = strtotime($valid_from . '-01');
-                if ($ts) {
-                    $formatted = wp_date('F Y', $ts);
-                    echo '<span class="programmo-weekplan__valid">📌 ' . esc_html(sprintf(__('gültig ab %s', 'programmo'), (string) $formatted)) . '</span>';
-                }
+            if ($show_valid_from && $validity_badge !== '') {
+                echo '<span class="programmo-weekplan__valid">'
+                    . '<svg class="programmo-weekplan__valid-icon" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> '
+                    . esc_html($validity_badge)
+                    . '</span>';
             }
             echo '</div>';
         }
@@ -428,6 +427,77 @@ final class Shortcode
 
         echo '</div>'; // .programmo-weekplan
         return (string) ob_get_clean();
+    }
+
+    private static function resolve_validity_badge(int $program_id): string
+    {
+        if ($program_id > 0) {
+            $valid_date_from = (string) get_post_meta($program_id, '_programmo_program_valid_date_from', true);
+            $valid_date_until = (string) get_post_meta($program_id, '_programmo_program_valid_date_until', true);
+            $date_badge = self::format_validity_date_badge($valid_date_from, $valid_date_until);
+            if ($date_badge !== '') {
+                return $date_badge;
+            }
+
+            $program_valid_from = (string) get_post_meta($program_id, '_programmo_program_valid_from', true);
+            if ($program_valid_from !== '') {
+                return self::format_valid_from_month_badge($program_valid_from);
+            }
+        }
+
+        return self::format_valid_from_month_badge((string) Dashboard::get_option('valid_from', ''));
+    }
+
+    private static function format_validity_date_badge(string $date_from, string $date_until): string
+    {
+        if ($date_from !== '' && $date_until !== '' && strtotime($date_from) > strtotime($date_until)) {
+            [$date_from, $date_until] = [$date_until, $date_from];
+        }
+
+        $formatted_from = self::format_validity_date($date_from);
+        $formatted_until = self::format_validity_date($date_until);
+
+        if ($formatted_from !== '' && $formatted_until !== '') {
+            return sprintf(__('gültig von %1$s bis %2$s', 'programmo'), $formatted_from, $formatted_until);
+        }
+
+        if ($formatted_from !== '') {
+            return sprintf(__('gültig ab %s', 'programmo'), $formatted_from);
+        }
+
+        if ($formatted_until !== '') {
+            return sprintf(__('gültig bis %s', 'programmo'), $formatted_until);
+        }
+
+        return '';
+    }
+
+    private static function format_valid_from_month_badge(string $valid_from): string
+    {
+        if ($valid_from === '') {
+            return '';
+        }
+
+        $ts = strtotime($valid_from . '-01');
+        if (!$ts) {
+            return '';
+        }
+
+        return sprintf(__('gültig ab %s', 'programmo'), (string) wp_date('F Y', $ts));
+    }
+
+    private static function format_validity_date(string $date): string
+    {
+        if ($date === '') {
+            return '';
+        }
+
+        $ts = strtotime($date);
+        if (!$ts) {
+            return '';
+        }
+
+        return (string) wp_date('d.m.Y', $ts);
     }
 
     private static function weekday_label(string $weekday): string

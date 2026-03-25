@@ -48,6 +48,7 @@ Bereits umgesetzt:
    - Mehrere eigenständige Programme können parallel angelegt werden.
    - Jeder Slot kann einem bestimmten Programm zugeordnet werden.
    - Im Gutenberg-Block lässt sich auswählen, welches Programm dargestellt werden soll.
+   - Jedes Programm kann einen eigenen Hinweis „Gültig ab“ oder optional einen konkreten Zeitraum „Gültig von/bis“ definieren; ohne Wert greift der globale Fallback aus den Einstellungen.
 
 ## Dashboard-Workflow
 
