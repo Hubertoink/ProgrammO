@@ -640,6 +640,14 @@ body[data-theme="dark"] .programmo-export-modal__content {
                 0 2px 4px -1px rgba(0, 0, 0, 0.12);
 }
 
+.programmo-weekrow--single-slot .programmo-slot {
+    max-width: none;
+}
+
+.programmo-weekrow--single-slot .programmo-slot__offers {
+    align-content: flex-start;
+}
+
 .programmo-weekplan--grain .programmo-weekrow__day,
 .programmo-weekplan--grain .programmo-slot {
     overflow: hidden;
@@ -1468,6 +1476,14 @@ html {
         padding: 2px 2px 6px;
     }
 
+    .programmo-weekrow--single-slot .programmo-slot__offers {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 7px;
+        justify-content: flex-start;
+        align-content: flex-start;
+    }
+
     .programmo-slot__offer {
         flex: 0 0 auto;
         width: 100%;
@@ -1476,6 +1492,11 @@ html {
         font-size: clamp(1.3rem, 4.5vw, 1.7rem);
         line-height: 1.04;
         border-radius: 10px;
+    }
+
+    .programmo-weekrow--single-slot .programmo-slot__offer {
+        width: auto;
+        flex: 1 1 calc(50% - 3.5px);
     }
 
     /* Scale down dynamically when many offers */
@@ -1487,6 +1508,11 @@ html {
         min-height: 46px;
         padding: 10px 14px;
         font-size: clamp(1.15rem, 4vw, 1.5rem);
+    }
+
+    .programmo-weekrow--single-slot .programmo-slot--offers-3plus .programmo-slot__offer,
+    .programmo-weekrow--single-slot .programmo-slot--offers-5plus .programmo-slot__offer {
+        flex-basis: calc(50% - 3.5px);
     }
 
     .programmo-slot--offers-5plus .programmo-slot__offers {

@@ -287,12 +287,16 @@ final class Shortcode
 
             $day_slots = $grouped[$day_key];
             $day_label = strtoupper(self::weekday_label($day_key));
+            $day_slot_count = count($day_slots);
             $max_offers_in_day = 0;
             foreach ($day_slots as $slot_data) {
                 $slot_events = is_array($slot_data['events'] ?? null) ? $slot_data['events'] : [];
                 $max_offers_in_day = max($max_offers_in_day, count($slot_events));
             }
             $weekrow_classes = ['programmo-weekrow'];
+            if ($day_slot_count === 1) {
+                $weekrow_classes[] = 'programmo-weekrow--single-slot';
+            }
             if ($max_offers_in_day >= 3) {
                 $weekrow_classes[] = 'programmo-weekrow--offers-3plus';
             }
