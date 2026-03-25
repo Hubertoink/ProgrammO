@@ -187,7 +187,8 @@ final class EventsBridge
 
         $post = get_post($event_id);
         if ($post instanceof \WP_Post && $post->post_type === self::PROGRAMMO_POST_TYPE_OFFER) {
-            return '';
+            $url = self::get_local_offer_url($event_id);
+            return (string) apply_filters('programmo/events/link', $url, $event_id);
         }
 
         $primary_offer_id = self::get_primary_angebot_id($event_id);
@@ -200,6 +201,20 @@ final class EventsBridge
         $url = is_string($url) ? $url : '';
 
         return (string) apply_filters('programmo/events/link', $url, $event_id);
+    }
+
+    public static function get_local_offer_url(int $post_id): string
+    {
+        if ($post_id <= 0) {
+            return '';
+        }
+
+        $post = get_post($post_id);
+        if (!$post instanceof \WP_Post || $post->post_type !== self::PROGRAMMO_POST_TYPE_OFFER) {
+            return '';
+        }
+
+        return esc_url_raw((string) get_post_meta($post_id, '_programmo_offer_url', true));
     }
 
     public static function get_primary_angebot_id(int $selected_id): int

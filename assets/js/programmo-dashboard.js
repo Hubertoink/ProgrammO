@@ -421,6 +421,10 @@
         html += '<textarea class="programmo-create-offer-description" rows="4" placeholder="Kurze Beschreibung für das Angebots-Modal"></textarea>';
         html += '</div>';
         html += '<div class="programmo-sidebar-create__field">';
+        html += '<label>Mehr-erfahren-URL</label>';
+        html += '<input type="url" class="programmo-create-offer-url" placeholder="https://example.org/angebot">';
+        html += '</div>';
+        html += '<div class="programmo-sidebar-create__field">';
         html += '<label>Bild</label>';
         html += '<div class="programmo-create-offer-image-picker">';
         html += '<div class="programmo-create-offer-image-preview" hidden><img class="programmo-create-offer-image-preview-img" src="" alt=""></div>';
@@ -791,8 +795,10 @@
 
                 var titleInput = createForm.querySelector('.programmo-create-offer-title');
                 var descriptionInput = createForm.querySelector('.programmo-create-offer-description');
+                var externalUrlInput = createForm.querySelector('.programmo-create-offer-url');
                 var title = titleInput ? titleInput.value.trim() : '';
                 var description = descriptionInput ? descriptionInput.value.trim() : '';
+                var externalUrl = externalUrlInput ? externalUrlInput.value.trim() : '';
                 var programmoPeopleSelect = createForm.querySelector('.programmo-create-offer-programmo-people');
                 var okjaPeopleSelect = createForm.querySelector('.programmo-create-offer-okja-people');
                 var imageIdInput = createForm.querySelector('.programmo-create-offer-image-id');
@@ -811,6 +817,7 @@
                 var payload = {
                     title: title,
                     description: description,
+                    external_url: externalUrl,
                     programmo_person_ids: getSelectedValues(programmoPeopleSelect),
                     okja_person_ids: getSelectedValues(okjaPeopleSelect),
                     image_id: parseInt(imageIdInput ? imageIdInput.value : '0', 10) || 0
@@ -1616,10 +1623,12 @@
 
         var titleInput = form.querySelector('.programmo-create-offer-title');
         var descriptionInput = form.querySelector('.programmo-create-offer-description');
+        var externalUrlInput = form.querySelector('.programmo-create-offer-url');
         var saveBtn = form.querySelector('.programmo-create-offer-save');
 
         if (titleInput) titleInput.value = ev.title || '';
         if (descriptionInput) descriptionInput.value = ev.description_raw || ev.description || '';
+        if (externalUrlInput) externalUrlInput.value = ev.external_url || ev.link || '';
         setSelectValues(form.querySelector('.programmo-create-offer-programmo-people'), ev.programmo_person_ids || []);
         setSelectValues(form.querySelector('.programmo-create-offer-okja-people'), ev.okja_person_ids || []);
         updateOfferImageField(form, ev.image_id || 0, ev.image_url || '');
@@ -1639,9 +1648,11 @@
 
         var titleInput = form.querySelector('.programmo-create-offer-title');
         var descriptionInput = form.querySelector('.programmo-create-offer-description');
+        var externalUrlInput = form.querySelector('.programmo-create-offer-url');
         var saveBtn = form.querySelector('.programmo-create-offer-save');
         if (titleInput) titleInput.value = '';
         if (descriptionInput) descriptionInput.value = '';
+        if (externalUrlInput) externalUrlInput.value = '';
         setSelectValues(form.querySelector('.programmo-create-offer-programmo-people'), []);
         setSelectValues(form.querySelector('.programmo-create-offer-okja-people'), []);
         updateOfferImageField(form, 0, '');

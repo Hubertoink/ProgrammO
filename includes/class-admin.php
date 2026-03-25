@@ -244,9 +244,16 @@ final class Admin
         $people_by_source = EventsBridge::get_person_choices_by_source();
         $programmo_selected = EventsBridge::get_local_offer_person_ids($post->ID, 'programmo');
         $okja_selected = EventsBridge::get_local_offer_person_ids($post->ID, 'okja');
+        $offer_url = EventsBridge::get_local_offer_url($post->ID);
         ?>
         <p class="description" style="margin-bottom:12px;">
-            <?php esc_html_e('Dieses Angebot bleibt innerhalb von ProgrammO und verlinkt nicht auf eine eigene Detailseite. Die ausführliche Beschreibung kommt aus dem Editor oberhalb.', 'programmo'); ?>
+            <?php esc_html_e('Dieses Angebot bleibt innerhalb von ProgrammO. Optional kannst du eine externe URL hinterlegen, die im Angebots-Modal als „Mehr erfahren“ erscheint. Die ausführliche Beschreibung kommt aus dem Editor oberhalb.', 'programmo'); ?>
+        </p>
+
+        <p>
+            <label for="programmo_offer_url"><strong><?php esc_html_e('Mehr-erfahren-URL', 'programmo'); ?></strong></label><br>
+            <input type="url" id="programmo_offer_url" name="programmo_offer_url" value="<?php echo esc_attr($offer_url); ?>" placeholder="https://example.org/angebot" style="width:100%;max-width:480px;">
+            <span class="description"><?php esc_html_e('Optional. Wird im Frontend-Modal als Button „Mehr erfahren“ angezeigt.', 'programmo'); ?></span>
         </p>
 
         <p>
@@ -307,8 +314,11 @@ final class Admin
             return;
         }
 
+        $offer_url = isset($_POST['programmo_offer_url']) ? esc_url_raw((string) wp_unslash($_POST['programmo_offer_url'])) : '';
         $programmo_people = isset($_POST['programmo_offer_programmo_people']) ? (array) $_POST['programmo_offer_programmo_people'] : [];
         $okja_people = isset($_POST['programmo_offer_okja_people']) ? (array) $_POST['programmo_offer_okja_people'] : [];
+
+        update_post_meta($post_id, '_programmo_offer_url', $offer_url);
 
         EventsBridge::save_local_offer_people(
             $post_id,

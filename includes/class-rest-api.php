@@ -384,6 +384,7 @@ final class RestApi
         }
 
         $description = wp_kses_post((string) ($request->get_param('description') ?? ''));
+        $external_url = esc_url_raw((string) ($request->get_param('external_url') ?? ''));
         $programmo_people = $request->get_param('programmo_person_ids');
         $okja_people = $request->get_param('okja_person_ids');
         $event_color = sanitize_text_field((string) ($request->get_param('event_color') ?? ''));
@@ -408,6 +409,10 @@ final class RestApi
         }
 
         EventsBridge::save_local_offer_people($post_id, $programmo_people, $okja_people);
+
+        if ($external_url !== '') {
+            update_post_meta($post_id, '_programmo_offer_url', $external_url);
+        }
 
         if ($event_color !== '') {
             update_post_meta($post_id, '_programmo_event_color', $event_color);
@@ -445,6 +450,7 @@ final class RestApi
         if ($post->post_type === EventsBridge::PROGRAMMO_POST_TYPE_OFFER) {
             $title = $request->get_param('title');
             $description = $request->get_param('description');
+            $external_url = $request->get_param('external_url');
             $programmo_people = $request->get_param('programmo_person_ids');
             $okja_people = $request->get_param('okja_person_ids');
             $image_id_param = $request->get_param('image_id');
@@ -480,6 +486,11 @@ final class RestApi
                     : EventsBridge::get_local_offer_person_ids($id, 'okja');
 
                 EventsBridge::save_local_offer_people($id, $programmo_people, $okja_people);
+                $updated_fields = true;
+            }
+
+            if ($external_url !== null) {
+                update_post_meta($id, '_programmo_offer_url', esc_url_raw((string) $external_url));
                 $updated_fields = true;
             }
 
@@ -846,6 +857,11 @@ final class RestApi
                 'type'    => 'string',
                 'default' => '',
             ],
+            'external_url' => [
+                'type'              => 'string',
+                'default'           => '',
+                'sanitize_callback' => 'esc_url_raw',
+            ],
             'programmo_person_ids' => [
                 'type'    => 'array',
                 'default' => [],
@@ -889,6 +905,8 @@ final class RestApi
             'label'               => $computed_label,
             'type'                => $type,
             'source'              => $type === EventsBridge::PROGRAMMO_POST_TYPE_OFFER ? 'programmo' : 'okja',
+            'link'                => EventsBridge::get_event_link($id),
+            'external_url'        => $type === EventsBridge::PROGRAMMO_POST_TYPE_OFFER ? EventsBridge::get_local_offer_url($id) : '',
             'badges'              => $badges,
             'primary_angebot_id'  => $primary,
             'has_warning'         => ($type === EventsBridge::OKJA_POST_TYPE_EVENT && $primary <= 0),
