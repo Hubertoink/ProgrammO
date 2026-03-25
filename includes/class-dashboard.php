@@ -113,6 +113,7 @@ final class Dashboard
                 'jugendTerms' => $jugend_term_items,
                 'programmoPeople' => $people_by_source['programmo'] ?? [],
                 'okjaPeople'      => $people_by_source['okja'] ?? [],
+                'programs'        => RestApi::get_programs_payload(),
             ]);
         }
     }
@@ -126,7 +127,7 @@ final class Dashboard
         if (!$screen) {
             return false;
         }
-        return in_array($screen->post_type, ['programmo_area', 'programmo_person', 'programmo_offer', 'programmo_slot'], true);
+        return in_array($screen->post_type, ['programmo_program', 'programmo_area', 'programmo_person', 'programmo_offer', 'programmo_slot'], true);
     }
 
     /* ------------------------------------------------------------------ */
@@ -135,11 +136,13 @@ final class Dashboard
 
     public static function render_overview(): void
     {
+        $program_count = wp_count_posts('programmo_program');
         $area_count  = wp_count_posts('programmo_area');
         $person_count = wp_count_posts('programmo_person');
         $offer_count = wp_count_posts('programmo_offer');
         $slot_count  = wp_count_posts('programmo_slot');
         $okja_active = EventsBridge::is_available();
+        $programs = RestApi::get_programs_payload();
 
         ?>
         <div class="wrap programmo-dashboard">
@@ -183,6 +186,14 @@ final class Dashboard
             <!-- Status cards -->
             <div class="programmo-status-cards">
                 <div class="programmo-status-card">
+                    <span class="dashicons dashicons-portfolio"></span>
+                    <div class="programmo-status-card__body">
+                        <strong><?php echo esc_html((string) ($program_count->publish ?? 0)); ?></strong>
+                        <?php esc_html_e('Programme', 'programmo'); ?>
+                    </div>
+                    <a href="<?php echo esc_url(admin_url('edit.php?post_type=programmo_program')); ?>" class="programmo-status-card__link"><?php esc_html_e('Verwalten', 'programmo'); ?></a>
+                </div>
+                <div class="programmo-status-card">
                     <span class="dashicons dashicons-grid-view"></span>
                     <div class="programmo-status-card__body">
                         <strong><?php echo esc_html((string) ($area_count->publish ?? 0)); ?></strong>
@@ -225,6 +236,9 @@ final class Dashboard
 
             <!-- Quick actions -->
             <div class="programmo-quick-actions">
+                <a href="<?php echo esc_url(admin_url('post-new.php?post_type=programmo_program')); ?>" class="button button-secondary button-hero">
+                    <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Neues Programm', 'programmo'); ?>
+                </a>
                 <a href="<?php echo esc_url(admin_url('post-new.php?post_type=programmo_slot')); ?>" class="button button-primary button-hero">
                     <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Neuer Slot', 'programmo'); ?>
                 </a>
@@ -244,6 +258,18 @@ final class Dashboard
             <p class="description" style="margin-bottom:12px;">
                 <?php esc_html_e('Slots direkt hier anlegen und Angebote per Drag & Drop zuordnen.', 'programmo'); ?>
             </p>
+
+            <div class="programmo-weekday-toggles" style="margin-bottom:12px;">
+                <label class="programmo-weekday-toggle">
+                    <span><?php esc_html_e('Programm', 'programmo'); ?></span>
+                    <select id="programmo-dashboard-program-filter" style="margin-left:8px;">
+                        <option value="0"><?php esc_html_e('Standard / ohne Programm', 'programmo'); ?></option>
+                        <?php foreach ($programs as $program) : ?>
+                            <option value="<?php echo esc_attr((string) ($program['id'] ?? 0)); ?>"><?php echo esc_html((string) ($program['title'] ?? '')); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+            </div>
 
             <div class="programmo-weekday-toggles">
                 <label class="programmo-weekday-toggle">
@@ -290,7 +316,7 @@ final class Dashboard
                         <div>
                             <strong><?php esc_html_e('Shortcode (Classic Editor)', 'programmo'); ?></strong>
                             <code>[programmo_weekplan]</code>
-                            <p class="description"><?php esc_html_e('Alternativ für Seiten ohne Block-Editor.', 'programmo'); ?></p>
+                            <p class="description"><?php esc_html_e('Alternativ für Seiten ohne Block-Editor. Für mehrere Programme kann der Block gezielt ein einzelnes Programm anzeigen.', 'programmo'); ?></p>
                         </div>
                     </div>
                 </div>

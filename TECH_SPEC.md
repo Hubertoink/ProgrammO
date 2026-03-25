@@ -6,6 +6,12 @@ ProgrammO ist die Wochenplan-Schicht. Events_OKJA bleibt für externe Angebotsin
 
 ## 2) Datenobjekte
 
+### `programmo_program` (Programm)
+
+- Titel (`post_title`)
+- Beschreibung (`post_content`)
+- `_programmo_program_color` (optionale Farbe zur Unterscheidung in Admin/Block)
+
 ### `programmo_area` (Offener Bereich)
 
 - Titel (`post_title`)
@@ -29,6 +35,7 @@ ProgrammO ist die Wochenplan-Schicht. Events_OKJA bleibt für externe Angebotsin
 ### `programmo_slot` (Wochenplan Slot)
 
 - Titel (`post_title`)
+- `_programmo_program_id` (`programmo_program` ID, `0` = Standard/ohne Programm)
 - `_programmo_weekday` (`monday`…`sunday`)
 - `_programmo_start_time` (`HH:MM`)
 - `_programmo_end_time` (`HH:MM`)
@@ -75,6 +82,7 @@ Dann kann ProgrammO ohne Heuristik arbeiten.
 - `plugins_loaded` → Plugin-Boot
 - `init` → CPT/Taxonomie-Registrierung
 - `add_meta_boxes` → Admin-Metaboxen
+- `save_post_programmo_program` → Programm-Meta speichern
 - `save_post_programmo_area` → Bereich-Meta speichern
 - `save_post_programmo_offer` → Angebots-Personen speichern
 - `save_post_programmo_slot` → Slot-Meta speichern
@@ -93,8 +101,14 @@ Dann kann ProgrammO ohne Heuristik arbeiten.
 
 Shortcode: `[programmo_weekplan]`
 
+Optional:
+
+- `[programmo_weekplan program_id="123"]`
+- Gutenberg-Block Attribut `programId`
+
 Ausgabe pro Slot:
 
+- nur für das gewählte Programm
 - Tag + Uhrzeit
 - Offener Bereich inkl. Personen
 - Angebotstitel

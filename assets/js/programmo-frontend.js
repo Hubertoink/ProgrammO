@@ -11,6 +11,14 @@
     var modalMoreBtn = null;
     var exportModalRoot = null;
 
+    function getBadgeBackgroundColor(badge) {
+        return badge.background_color || badge.bg_color || badge.color || '';
+    }
+
+    function getBadgeTextColor(badge) {
+        return badge.text_color || badge.fg_color || '';
+    }
+
     function ensureOfferModal() {
         if (modalRoot) {
             return;
@@ -97,16 +105,24 @@
                 var label = (b.name || '').trim();
                 if (!label) return;
                 var span = document.createElement('span');
+                var backgroundColor = getBadgeBackgroundColor(b);
+                var textColor = getBadgeTextColor(b);
                 span.className = 'programmo-offer-modal__badge';
                 if (b.is_person) span.className += ' programmo-offer-modal__badge--person';
                 span.textContent = label;
-                if (b.color) {
+                if (backgroundColor) {
                     if (b.is_person) {
-                        span.style.setProperty('--badge-person-color', b.color);
+                        span.style.setProperty('--badge-person-color', backgroundColor);
                     } else {
-                        span.style.background = b.color;
-                        span.style.color = '#fff';
+                        span.style.background = backgroundColor;
                     }
+                }
+                if (textColor) {
+                    span.style.color = textColor;
+                } else if (!b.is_person && backgroundColor) {
+                    span.style.color = '#fff';
+                } else if (b.is_person) {
+                    span.style.color = '#fff';
                 }
                 modalBadges.appendChild(span);
             });
@@ -298,15 +314,24 @@
                 var label = (b.name || '').trim();
                 if (!label) return;
                 var span = document.createElement('span');
+                var backgroundColor = getBadgeBackgroundColor(b);
+                var textColor = getBadgeTextColor(b);
                 span.className = 'programmo-tooltip__badge';
                 if (b.is_person) span.className += ' programmo-tooltip__badge--person';
                 span.textContent = label;
-                if (b.color) {
+                if (backgroundColor) {
                     if (b.is_person) {
-                        span.style.setProperty('--badge-person-color', b.color);
+                        span.style.setProperty('--badge-person-color', backgroundColor);
                     } else {
-                        span.style.background = b.color;
+                        span.style.background = backgroundColor;
                     }
+                }
+                if (textColor) {
+                    span.style.color = textColor;
+                } else if (!b.is_person && backgroundColor) {
+                    span.style.color = '#fff';
+                } else if (b.is_person) {
+                    span.style.color = '#fff';
                 }
                 badgesEl.appendChild(span);
             });

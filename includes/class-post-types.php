@@ -17,11 +17,29 @@ final class PostTypes
 
     public static function ensure_thumbnail_support(): void
     {
-        add_theme_support('post-thumbnails', ['programmo_offer']);
+        add_theme_support('post-thumbnails', ['programmo_offer', 'programmo_program']);
     }
 
     public static function register_post_types(): void
     {
+        register_post_type('programmo_program', [
+            'labels' => [
+                'name' => __('Programme', 'programmo'),
+                'singular_name' => __('Programm', 'programmo'),
+                'add_new'       => __('Neues Programm', 'programmo'),
+                'add_new_item'  => __('Neues Programm anlegen', 'programmo'),
+                'edit_item'     => __('Programm bearbeiten', 'programmo'),
+                'all_items'     => __('Programme', 'programmo'),
+            ],
+            'description' => __('Eigenständige Programme, für die jeweils eigene Wochenplan-Slots gepflegt werden können.', 'programmo'),
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => 'programmo',
+            'menu_icon' => 'dashicons-portfolio',
+            'supports' => ['title', 'editor', 'thumbnail'],
+            'show_in_rest' => true,
+        ]);
+
         register_post_type('programmo_area', [
             'labels' => [
                 'name' => __('Offene Bereiche', 'programmo'),

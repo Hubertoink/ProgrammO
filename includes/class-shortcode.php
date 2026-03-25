@@ -44,13 +44,19 @@ final class Shortcode
     /**
      * Shortcode entry point — delegates to the shared render method.
      */
-    public static function render(): string
+    public static function render($atts = []): string
     {
         wp_enqueue_style('programmo-critical');
         wp_enqueue_style('programmo-frontend');
         wp_enqueue_script('programmo-frontend');
 
-        return self::render_plan([]);
+        $atts = shortcode_atts([
+            'program_id' => 0,
+        ], is_array($atts) ? $atts : [], 'programmo_weekplan');
+
+        return self::render_plan([
+            'program_id' => absint($atts['program_id'] ?? 0),
+        ]);
     }
 
     /**
@@ -79,6 +85,9 @@ final class Shortcode
         $title           = (string) ($options['title'] ?? '');
         $override_days   = (array) ($options['override_days'] ?? []);
         $back_url        = (string) ($options['back_url'] ?? '');
+        $program_id      = absint($options['program_id'] ?? 0);
+        $show_empty_slot_text = (bool) ($options['show_empty_slot_text'] ?? true);
+        $empty_slot_text      = (string) ($options['empty_slot_text'] ?? 'Offener Bereich – komm einfach vorbei!');
 
         // Resolve visible days: block override → global setting
         $visible_days = !empty($override_days)
@@ -105,6 +114,10 @@ final class Shortcode
         // Group slots by weekday and collect render data
         $grouped = [];
         foreach ($all_slots as $slot) {
+            if ((int) get_post_meta($slot->ID, '_programmo_program_id', true) !== $program_id) {
+                continue;
+            }
+
             $weekday = (string) get_post_meta($slot->ID, '_programmo_weekday', true);
 
             if (!empty($visible_days) && !in_array($weekday, $visible_days, true)) {
@@ -211,7 +224,7 @@ final class Shortcode
         }
 
         if (empty($grouped)) {
-            return '<div class="programmo-empty">' . esc_html__('Keine sichtbaren Slots.', 'programmo') . '</div>';
+            return '<div class="programmo-empty">' . esc_html__('Keine sichtbaren Slots für dieses Programm.', 'programmo') . '</div>';
         }
 
         // Ensure consistent weekday order
@@ -361,7 +374,7 @@ final class Shortcode
                 }
                 echo '</div>';
 
-                // Offers (rectangular tiles)
+                // Offers (rectangular tiles) or empty-slot hint
                 if (!empty($events)) {
                     echo '<div class="programmo-slot__offers">';
                     foreach ($events as $ev) {
@@ -398,6 +411,10 @@ final class Shortcode
                         echo esc_html($ev_title);
                         echo '</' . $tag . '>';
                     }
+                    echo '</div>';
+                } elseif ($show_empty_slot_text && $empty_slot_text !== '') {
+                    echo '<div class="programmo-slot__empty-hint">';
+                    echo '<span>' . esc_html($empty_slot_text) . '</span>';
                     echo '</div>';
                 }
 

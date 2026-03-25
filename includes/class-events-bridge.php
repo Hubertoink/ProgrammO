@@ -264,8 +264,7 @@ final class EventsBridge
     }
 
     /**
-     * Predefined color palette for pädagogik taxonomy terms.
-     * Falls back to cycling through these by term_id.
+     * Fallback palette for pädagogik terms when the source plugin provides no term colors.
      */
     private const PAED_COLORS = [
         '#9333ea', // purple
@@ -278,14 +277,41 @@ final class EventsBridge
         '#eab308', // yellow
     ];
 
+    private const TERM_BACKGROUND_META_KEYS = [
+        'bg',
+        'badge_bg',
+        'badge_background',
+        'background',
+        'background_color',
+        'bg_color',
+        'farbe',
+        'term_bg',
+        'term_background',
+        'jhh_badge_bg',
+        'jhh_term_bg',
+    ];
+
+    private const TERM_TEXT_META_KEYS = [
+        'color',
+        'badge_color',
+        'text_color',
+        'font_color',
+        'foreground_color',
+        'term_color',
+        'schriftfarbe',
+        'jhh_badge_color',
+        'jhh_term_color',
+    ];
+
     /**
-     * Return structured badge data for a post (name, taxonomy, color).
+     * Return structured badge data for a post.
      *
      * For 'jugendarbeit' terms we attempt to look up the matching person CPT
-     * and use its `_person_color` meta.  For 'paedagogik' terms we cycle through
-     * a deterministic colour palette.  'tage' terms use a muted gray.
+     * and use its `_person_color` meta. For 'paedagogik' terms we prefer the
+     * term colors configured in Events_OKJA and fall back to a deterministic
+     * palette only when no term colors are available.
      *
-     * @return array<int, array{name: string, taxonomy: string, color: string, is_person: bool}>
+     * @return array<int, array{name: string, taxonomy: string, color: string, background_color: string, text_color: string, is_person: bool}>
      */
     public static function get_term_badges_for_post(int $post_id): array
     {
@@ -319,30 +345,17 @@ final class EventsBridge
                 if (!($term instanceof \WP_Term) || isset($seen[$term->name])) {
                     continue;
                 }
+
                 $seen[$term->name] = true;
 
-                $color     = '';
-                $is_person = false;
-
-                if ($taxonomy === self::OKJA_TAX_JUGEND) {
-                    $is_person = true;
-                    $color = self::resolve_person_badge_color($term->name);
-                    if ($color === '') {
-                        $color = '#ff6b6b'; // Events_OKJA default person colour
-                    }
-                } elseif ($taxonomy === self::OKJA_TAX_PAED) {
-                    $idx   = abs($term->term_id) % count(self::PAED_COLORS);
-                    $color = self::PAED_COLORS[$idx];
-                } elseif ($taxonomy === self::OKJA_TAX_TAGE) {
-                    $color = '#6b7280'; // muted gray for day badges
-                }
-
-                $badges[] = [
-                    'name'      => $term->name,
-                    'taxonomy'  => $taxonomy,
-                    'color'     => $color,
-                    'is_person' => $is_person,
-                ];
+                $style = self::resolve_term_badge_style($term, $taxonomy);
+                $badges[] = self::build_badge_payload(
+                    $term->name,
+                    $taxonomy,
+                    $style['background_color'],
+                    $style['text_color'],
+                    $style['is_person']
+                );
             }
         }
 
@@ -508,16 +521,206 @@ final class EventsBridge
 
                 $seen[$name] = true;
 
-                $badges[] = [
-                    'name'      => $name,
-                    'taxonomy'  => 'person',
-                    'color'     => self::get_person_badge_color_for_post((int) $person->ID),
-                    'is_person' => true,
-                ];
+                $badges[] = self::build_badge_payload(
+                    $name,
+                    'person',
+                    self::get_person_badge_color_for_post((int) $person->ID),
+                    '#ffffff',
+                    true
+                );
             }
         }
 
         return $badges;
+    }
+
+    /**
+     * @return array{background_color: string, text_color: string, is_person: bool}
+     */
+    private static function resolve_term_badge_style(\WP_Term $term, string $taxonomy): array
+    {
+        if ($taxonomy === self::OKJA_TAX_JUGEND) {
+            $background_color = self::resolve_person_badge_color($term->name);
+            if ($background_color === '') {
+                $background_color = '#ff6b6b';
+            }
+
+            return [
+                'background_color' => $background_color,
+                'text_color'       => '#ffffff',
+                'is_person'        => true,
+            ];
+        }
+
+        if ($taxonomy === self::OKJA_TAX_PAED) {
+            $palette = self::get_term_badge_palette($term);
+            if ($palette['background_color'] === '') {
+                $idx = abs($term->term_id) % count(self::PAED_COLORS);
+                $palette['background_color'] = self::PAED_COLORS[$idx];
+            }
+            if ($palette['text_color'] === '') {
+                $palette['text_color'] = '#ffffff';
+            }
+
+            return $palette + ['is_person' => false];
+        }
+
+        if ($taxonomy === self::OKJA_TAX_TAGE) {
+            return [
+                'background_color' => '#6b7280',
+                'text_color'       => '#ffffff',
+                'is_person'        => false,
+            ];
+        }
+
+        return [
+            'background_color' => '',
+            'text_color'       => '',
+            'is_person'        => false,
+        ];
+    }
+
+    /**
+     * @return array{background_color: string, text_color: string}
+     */
+    private static function get_term_badge_palette(\WP_Term $term): array
+    {
+        $meta_map = self::get_normalized_term_meta_map((int) $term->term_id);
+        if ($meta_map === []) {
+            return [
+                'background_color' => '',
+                'text_color'       => '',
+            ];
+        }
+
+        $background_color = self::match_color_from_term_meta(
+            $meta_map,
+            self::TERM_BACKGROUND_META_KEYS,
+            [['badge', 'bg'], ['term', 'bg'], ['background'], ['bg'], ['farbe']],
+            ['text', 'font', 'foreground', 'schrift']
+        );
+
+        $text_color = self::match_color_from_term_meta(
+            $meta_map,
+            self::TERM_TEXT_META_KEYS,
+            [['badge', 'color'], ['term', 'color'], ['text', 'color'], ['font', 'color'], ['foreground', 'color'], ['schrift'], ['color']],
+            ['background', 'bg']
+        );
+
+        if ($background_color === '' && $text_color !== '') {
+            $background_color = $text_color;
+            $text_color = '';
+        }
+
+        return [
+            'background_color' => $background_color,
+            'text_color'       => $text_color,
+        ];
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private static function get_normalized_term_meta_map(int $term_id): array
+    {
+        $raw_meta = get_term_meta($term_id);
+        if (!is_array($raw_meta) || $raw_meta === []) {
+            return [];
+        }
+
+        $meta_map = [];
+        foreach ($raw_meta as $meta_key => $values) {
+            $normalized_key = self::normalize_meta_key((string) $meta_key);
+            if ($normalized_key === '') {
+                continue;
+            }
+
+            foreach ((array) $values as $value) {
+                if (!is_scalar($value)) {
+                    continue;
+                }
+
+                $normalized_value = self::normalize_color_value((string) $value);
+                if ($normalized_value === '') {
+                    continue;
+                }
+
+                if (!isset($meta_map[$normalized_key])) {
+                    $meta_map[$normalized_key] = [];
+                }
+
+                $meta_map[$normalized_key][] = $normalized_value;
+            }
+        }
+
+        return $meta_map;
+    }
+
+    /**
+     * @param array<string, list<string>> $meta_map
+     * @param array<int, string> $candidate_keys
+     * @param array<int, array<int, string>> $fragment_groups
+     * @param array<int, string> $exclude_fragments
+     */
+    private static function match_color_from_term_meta(array $meta_map, array $candidate_keys, array $fragment_groups, array $exclude_fragments): string
+    {
+        foreach ($candidate_keys as $candidate_key) {
+            $normalized_key = self::normalize_meta_key($candidate_key);
+            if (isset($meta_map[$normalized_key][0])) {
+                return $meta_map[$normalized_key][0];
+            }
+        }
+
+        foreach ($meta_map as $meta_key => $values) {
+            foreach ($exclude_fragments as $fragment) {
+                if ($fragment !== '' && str_contains($meta_key, $fragment)) {
+                    continue 2;
+                }
+            }
+
+            foreach ($fragment_groups as $fragment_group) {
+                $matches = true;
+                foreach ($fragment_group as $fragment) {
+                    if ($fragment === '') {
+                        continue;
+                    }
+
+                    if (!str_contains($meta_key, $fragment)) {
+                        $matches = false;
+                        break;
+                    }
+                }
+
+                if ($matches && isset($values[0])) {
+                    return $values[0];
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array{name: string, taxonomy: string, color: string, background_color: string, text_color: string, is_person: bool}
+     */
+    private static function build_badge_payload(string $name, string $taxonomy, string $background_color, string $text_color, bool $is_person): array
+    {
+        $background_color = self::normalize_color_value($background_color);
+        $text_color = self::normalize_color_value($text_color);
+
+        return [
+            'name'             => $name,
+            'taxonomy'         => $taxonomy,
+            'color'            => $background_color,
+            'background_color' => $background_color,
+            'text_color'       => $text_color,
+            'is_person'        => $is_person,
+        ];
+    }
+
+    private static function normalize_meta_key(string $meta_key): string
+    {
+        return strtolower((string) preg_replace('/[^a-z0-9]+/', '', $meta_key));
     }
 
     private static function get_person_badge_color_for_post(int $post_id): string
@@ -532,23 +735,33 @@ final class EventsBridge
         ];
 
         foreach ($meta_candidates as $raw_color) {
-            $value = trim($raw_color);
-            if ($value === '') {
-                continue;
+            $color = self::normalize_color_value($raw_color);
+            if ($color !== '') {
+                return $color;
             }
+        }
 
-            $hex = sanitize_hex_color($value);
-            if (is_string($hex) && $hex !== '') {
-                return $hex;
-            }
+        return '';
+    }
 
-            if (preg_match('/^rgba?\([0-9.,\s%]+\)$/i', $value)) {
-                return $value;
-            }
+    private static function normalize_color_value(string $raw_color): string
+    {
+        $value = trim($raw_color);
+        if ($value === '') {
+            return '';
+        }
 
-            if (preg_match('/^hsla?\([0-9.,\s%]+\)$/i', $value)) {
-                return $value;
-            }
+        $hex = sanitize_hex_color($value);
+        if (is_string($hex) && $hex !== '') {
+            return $hex;
+        }
+
+        if (preg_match('/^rgba?\([0-9.,\s%]+\)$/i', $value)) {
+            return $value;
+        }
+
+        if (preg_match('/^hsla?\([0-9.,\s%]+\)$/i', $value)) {
+            return $value;
         }
 
         return '';

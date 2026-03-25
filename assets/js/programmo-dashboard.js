@@ -21,6 +21,7 @@
     var jugendTerms = Array.isArray(cfg.jugendTerms) ? cfg.jugendTerms : [];
     var programmoPeople = Array.isArray(cfg.programmoPeople) ? cfg.programmoPeople : [];
     var okjaPeople = Array.isArray(cfg.okjaPeople) ? cfg.okjaPeople : [];
+    var programs = Array.isArray(cfg.programs) ? cfg.programs : [];
 
     /* State */
     var slots = [];
@@ -38,11 +39,13 @@
     var sidebarSearchEl = document.getElementById('programmo-angebote-search');
     var toggleSaturdayEl = document.getElementById('programmo-toggle-saturday');
     var toggleSundayEl = document.getElementById('programmo-toggle-sunday');
+    var programFilterEl = document.getElementById('programmo-dashboard-program-filter');
 
     if (!matrixEl) return; // Not on dashboard
 
     var visibleWeekdayKeys = weekdayKeys.slice();
     var weekendToggleStorageKey = 'programmo.dashboard.weekendVisibility.v1';
+    var selectedProgramId = programFilterEl ? (parseInt(programFilterEl.value, 10) || 0) : 0;
 
     /* ================================================================ */
     /*  REST helpers                                                    */
@@ -73,10 +76,17 @@
     /*  Initial data load                                              */
     /* ================================================================ */
 
+    function loadSlotsForSelectedProgram() {
+        return api('GET', '/slots?program_id=' + selectedProgramId).then(function (items) {
+            slots = Array.isArray(items) ? items : [];
+            return slots;
+        });
+    }
+
     function loadAll() {
         bindWeekendToggles();
         return Promise.all([
-            api('GET', '/slots'),
+            loadSlotsForSelectedProgram(),
             api('GET', '/events'),
             api('GET', '/areas'),
             api('GET', '/day-colors'),
@@ -108,7 +118,9 @@
         visibleWeekdayKeys.forEach(function (dayKey) {
             var label = weekdays[dayKey] || dayKey;
             var daySlots = slots
-                .filter(function (s) { return s.weekday === dayKey; })
+                .filter(function (s) {
+                    return s.weekday === dayKey && (parseInt(s.program_id, 10) || 0) === selectedProgramId;
+                })
                 .sort(function (a, b) { return (a.start || '').localeCompare(b.start || ''); });
 
             var dayBg = dayColors[dayKey] || '';
@@ -200,6 +212,19 @@
             });
             el.dataset.bound = '1';
         });
+
+        if (programFilterEl && programFilterEl.dataset.bound !== '1') {
+            programFilterEl.addEventListener('change', function () {
+                selectedProgramId = parseInt(programFilterEl.value, 10) || 0;
+                matrixEl.innerHTML = '<p style="padding:20px; color:#8c8f94;">Lade Wochenplan…</p>';
+                loadSlotsForSelectedProgram().then(function () {
+                    renderMatrix();
+                }).catch(function (err) {
+                    matrixEl.innerHTML = '<div class="notice notice-error inline"><p>Fehler beim Laden: ' + escHtml(err.message) + '</p></div>';
+                });
+            });
+            programFilterEl.dataset.bound = '1';
+        }
     }
 
     function renderSlotCard(slot) {
@@ -547,6 +572,7 @@
                 btn.textContent = 'Speichert…';
 
                 api('POST', '/slots', {
+                    program_id: selectedProgramId,
                     weekday: day,
                     start: start,
                     end: end,

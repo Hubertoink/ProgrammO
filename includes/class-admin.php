@@ -10,6 +10,7 @@ final class Admin
 {
     public static function register(): void
     {
+        add_action('save_post_programmo_program', [self::class, 'save_program_meta']);
         add_action('add_meta_boxes', [self::class, 'register_meta_boxes']);
         add_action('save_post_programmo_area', [self::class, 'save_area_meta']);
         add_action('save_post_programmo_offer', [self::class, 'save_offer_meta']);
@@ -42,6 +43,15 @@ final class Admin
 
     public static function register_meta_boxes(): void
     {
+        add_meta_box(
+            'programmo_program_meta',
+            __('Programm — Darstellung', 'programmo'),
+            [self::class, 'render_program_meta_box'],
+            'programmo_program',
+            'normal',
+            'high'
+        );
+
         add_meta_box(
             'programmo_area_meta',
             __('Offener Bereich — Darstellung & Team', 'programmo'),
@@ -110,10 +120,27 @@ final class Admin
         <?php
     }
 
+    public static function render_program_meta_box(\WP_Post $post): void
+    {
+        wp_nonce_field('programmo_program_meta', 'programmo_program_meta_nonce');
+
+        $color = (string) get_post_meta($post->ID, '_programmo_program_color', true);
+        ?>
+        <p class="description" style="margin-bottom:12px;">
+            <?php esc_html_e('Ein Programm bündelt einen eigenen Wochenplan. Die Farbe hilft bei der Auswahl im Block und im Dashboard.', 'programmo'); ?>
+        </p>
+        <p>
+            <label for="programmo_program_color"><strong><?php esc_html_e('Programmfarbe', 'programmo'); ?></strong></label><br>
+            <input type="color" id="programmo_program_color" name="programmo_program_color" value="<?php echo esc_attr($color ?: '#2271b1'); ?>" style="width:56px;height:38px;cursor:pointer;">
+        </p>
+        <?php
+    }
+
     public static function render_slot_meta_box(\WP_Post $post): void
     {
         wp_nonce_field('programmo_slot_meta', 'programmo_slot_meta_nonce');
 
+        $program_id = (int) get_post_meta($post->ID, '_programmo_program_id', true);
         $weekday = (string) get_post_meta($post->ID, '_programmo_weekday', true);
         $start = (string) get_post_meta($post->ID, '_programmo_start_time', true);
         $end = (string) get_post_meta($post->ID, '_programmo_end_time', true);
@@ -130,10 +157,23 @@ final class Admin
             'orderby' => 'title',
             'order' => 'ASC',
         ]);
+        $programs = self::get_program_options();
 
         $jugend_terms = EventsBridge::get_terms_for_taxonomy(EventsBridge::OKJA_TAX_JUGEND);
         $paed_terms = EventsBridge::get_terms_for_taxonomy(EventsBridge::OKJA_TAX_PAED);
         ?>
+        <p>
+            <label for="programmo_program_id"><strong><?php esc_html_e('Programm', 'programmo'); ?></strong></label><br>
+            <select id="programmo_program_id" name="programmo_program_id" style="min-width:280px;">
+                <option value="0"><?php esc_html_e('— Standard / ohne Programm —', 'programmo'); ?></option>
+                <?php foreach ($programs as $program) : ?>
+                    <option value="<?php echo esc_attr((string) $program['id']); ?>" <?php selected($program_id, (int) $program['id']); ?>>
+                        <?php echo esc_html((string) $program['title']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <span class="description"><?php esc_html_e('Damit lässt sich ein Slot gezielt einem bestimmten Programm zuordnen.', 'programmo'); ?></span>
+        </p>
         <p>
             <label for="programmo_weekday"><strong><?php esc_html_e('Wochentag', 'programmo'); ?></strong></label><br>
             <select name="programmo_weekday" id="programmo_weekday">
@@ -251,6 +291,16 @@ final class Admin
         update_post_meta($post_id, '_programmo_area_people', $people);
     }
 
+    public static function save_program_meta(int $post_id): void
+    {
+        if (!self::can_save($post_id, 'programmo_program_meta_nonce', 'programmo_program_meta')) {
+            return;
+        }
+
+        $color = isset($_POST['programmo_program_color']) ? sanitize_hex_color((string) wp_unslash($_POST['programmo_program_color'])) : '';
+        update_post_meta($post_id, '_programmo_program_color', (string) $color);
+    }
+
     public static function save_offer_meta(int $post_id): void
     {
         if (!self::can_save($post_id, 'programmo_offer_meta_nonce', 'programmo_offer_meta')) {
@@ -273,6 +323,7 @@ final class Admin
             return;
         }
 
+        $program_id = isset($_POST['programmo_program_id']) ? absint($_POST['programmo_program_id']) : 0;
         $weekday = isset($_POST['programmo_weekday']) ? sanitize_text_field((string) wp_unslash($_POST['programmo_weekday'])) : '';
         $start = isset($_POST['programmo_start_time']) ? sanitize_text_field((string) wp_unslash($_POST['programmo_start_time'])) : '';
         $end = isset($_POST['programmo_end_time']) ? sanitize_text_field((string) wp_unslash($_POST['programmo_end_time'])) : '';
@@ -285,6 +336,7 @@ final class Admin
         // Events are now managed via Dashboard drag & drop — do NOT overwrite here
         // $event_ids = isset($_POST['programmo_event_ids']) ? … : [];
 
+        update_post_meta($post_id, '_programmo_program_id', $program_id);
         update_post_meta($post_id, '_programmo_weekday', $weekday);
         update_post_meta($post_id, '_programmo_start_time', $start);
         update_post_meta($post_id, '_programmo_end_time', $end);
@@ -379,5 +431,26 @@ final class Admin
             'saturday' => __('Samstag', 'programmo'),
             'sunday' => __('Sonntag', 'programmo'),
         ];
+    }
+
+    private static function get_program_options(): array
+    {
+        $programs = get_posts([
+            'post_type' => 'programmo_program',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'post_status' => ['publish', 'private'],
+        ]);
+
+        $items = [];
+        foreach ($programs as $program) {
+            $items[] = [
+                'id' => (int) $program->ID,
+                'title' => (string) $program->post_title,
+            ];
+        }
+
+        return $items;
     }
 }

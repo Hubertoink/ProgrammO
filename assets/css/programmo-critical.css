@@ -121,10 +121,9 @@
     flex: 1;
     min-width: clamp(110px, 20cqw, 220px);
     min-height: var(--programmo-slot-height);
-    max-width: 460px;
+    max-width: 520px;
     display: flex;
     flex-direction: column;
-    padding: 0 10px 6px 28px;
     border-radius: 4px;
 }
 

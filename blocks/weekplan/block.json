@@ -28,6 +28,10 @@
             "type": "string",
             "default": ""
         },
+        "programId": {
+            "type": "number",
+            "default": 0
+        },
         "showValidFrom": {
             "type": "boolean",
             "default": true
@@ -78,6 +82,14 @@
         "backUrl": {
             "type": "string",
             "default": ""
+        },
+        "showEmptySlotText": {
+            "type": "boolean",
+            "default": true
+        },
+        "emptySlotText": {
+            "type": "string",
+            "default": "Offener Bereich – komm einfach vorbei!"
         }
     },
     "editorScript": "programmo-block-editor",

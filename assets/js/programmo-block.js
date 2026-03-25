@@ -13,6 +13,7 @@
     const {
         PanelBody,
         PanelRow,
+        SelectControl,
         TextControl,
         ToggleControl,
         RangeControl,
@@ -39,6 +40,7 @@
 
     const globalDays = (window.programmoBlockData && window.programmoBlockData.globalDays) || [];
     const globalMobileCollapse = (window.programmoBlockData && window.programmoBlockData.globalMobileCollapse) !== false;
+    const programs = (window.programmoBlockData && window.programmoBlockData.programs) || [];
 
     /* ------------------------------------------------------------------ */
     /*  Block Icon (SVG)                                                  */
@@ -60,6 +62,7 @@
         var setAttributes = props.setAttributes;
 
         var title = attributes.title || '';
+        var programId = attributes.programId || 0;
         var showValidFrom = attributes.showValidFrom !== false;
         var showTeam = attributes.showTeam !== false;
         var showBadges = attributes.showBadges !== false;
@@ -72,6 +75,8 @@
         var enablePdfExport = !!attributes.enablePdfExport;
         var showGrain = !!attributes.showGrain;
         var showTooltips = attributes.showTooltips !== false;
+        var showEmptySlotText = attributes.showEmptySlotText !== false;
+        var emptySlotText = attributes.emptySlotText || '';
         var backUrl = attributes.backUrl || '';
         var columns = attributes.columns || 0;
         var overrideDays = attributes.overrideDays || [];
@@ -100,6 +105,28 @@
         var inspector = el(
             InspectorControls,
             null,
+
+            el(
+                PanelBody,
+                { title: __('Programm', 'programmo'), initialOpen: true },
+
+                el(SelectControl, {
+                    label: __('Anzuzeigendes Programm', 'programmo'),
+                    help: __('Waehlt aus, welches Programm dieser Block rendern soll. Standard zeigt nur Slots ohne Programm-Zuordnung.', 'programmo'),
+                    value: String(programId),
+                    options: [{ label: __('Standard / ohne Programm', 'programmo'), value: '0' }].concat(
+                        programs.map(function (program) {
+                            return {
+                                label: program.title || __('Unbenanntes Programm', 'programmo'),
+                                value: String(program.id || 0),
+                            };
+                        })
+                    ),
+                    onChange: function (val) {
+                        setAttributes({ programId: Number(val) || 0 });
+                    },
+                })
+            ),
 
             /* --- Panel: Allgemein --- */
             el(
@@ -208,7 +235,27 @@
                     onChange: function (val) {
                         setAttributes({ showTooltips: val });
                     },
-                })
+                }),
+
+                el(ToggleControl, {
+                    label: __('Hinweis bei leeren Slots', 'programmo'),
+                    help: __('Zeigt einen dezenten Text an, wenn ein Zeitslot keine verknüpften Angebote hat.', 'programmo'),
+                    checked: showEmptySlotText,
+                    onChange: function (val) {
+                        setAttributes({ showEmptySlotText: val });
+                    },
+                }),
+
+                showEmptySlotText
+                    ? el(TextControl, {
+                          label: __('Leer-Slot Text', 'programmo'),
+                          help: __('Wird angezeigt, wenn keine Angebote verknüpft sind.', 'programmo'),
+                          value: emptySlotText,
+                          onChange: function (val) {
+                              setAttributes({ emptySlotText: val });
+                          },
+                      })
+                    : null
             ),
 
             /* --- Panel: Layout --- */

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ProgrammO
  * Description: Dynamischer Wochenplan für Jugendhäuser mit Offenen Bereichen, Personen-Zuordnung und Events_OKJA-Integration.
- * Version: 0.3
+ * Version: 0.4
  * Author: Hubertoink
  * Text Domain: programmo
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('PROGRAMMO_VERSION', '0.3');
+define('PROGRAMMO_VERSION', '0.4');
 define('PROGRAMMO_FILE', __FILE__);
 define('PROGRAMMO_PATH', plugin_dir_path(__FILE__));
 define('PROGRAMMO_URL', plugin_dir_url(__FILE__));

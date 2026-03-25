@@ -123,6 +123,14 @@ final class RestApi
             'post_status'    => ['publish', 'draft', 'private'],
         ]);
 
+        $program_param = $request->get_param('program_id');
+        if ($program_param !== null) {
+            $program_id = absint($program_param);
+            $posts = array_values(array_filter($posts, static function ($post) use ($program_id) {
+                return (int) get_post_meta($post->ID, '_programmo_program_id', true) === $program_id;
+            }));
+        }
+
         $items = array_map([self::class, 'format_slot'], $posts);
 
         return new \WP_REST_Response($items, 200);
@@ -133,6 +141,7 @@ final class RestApi
      */
     public static function create_slot(\WP_REST_Request $request): \WP_REST_Response
     {
+        $program_id = absint($request->get_param('program_id') ?? 0);
         $weekday  = sanitize_text_field($request->get_param('weekday') ?? 'monday');
         $start    = sanitize_text_field($request->get_param('start') ?? '');
         $end      = sanitize_text_field($request->get_param('end') ?? '');
@@ -174,6 +183,7 @@ final class RestApi
         }
         $jugend_term_ids = array_values(array_unique(array_filter(array_map('absint', $jugend_term_ids))));
 
+        update_post_meta($post_id, '_programmo_program_id', $program_id);
         update_post_meta($post_id, '_programmo_weekday', $weekday);
         update_post_meta($post_id, '_programmo_start_time', $start);
         update_post_meta($post_id, '_programmo_end_time', $end);
@@ -209,8 +219,9 @@ final class RestApi
         }
 
         // Handle simple fields
-        $simple_fields = ['weekday', 'start', 'end', 'area_id', 'age_range'];
+        $simple_fields = ['program_id', 'weekday', 'start', 'end', 'area_id', 'age_range'];
         $meta_map = [
+            'program_id' => '_programmo_program_id',
             'weekday'   => '_programmo_weekday',
             'start'     => '_programmo_start_time',
             'end'       => '_programmo_end_time',
@@ -221,7 +232,7 @@ final class RestApi
         foreach ($simple_fields as $field) {
             $value = $request->get_param($field);
             if ($value !== null) {
-                if ($field === 'area_id') {
+                if ($field === 'area_id' || $field === 'program_id') {
                     $value = absint($value);
                 } else {
                     $value = sanitize_text_field((string) $value);
@@ -525,6 +536,24 @@ final class RestApi
         return new \WP_REST_Response($items, 200);
     }
 
+    public static function get_programs_payload(): array
+    {
+        $posts = get_posts([
+            'post_type'      => 'programmo_program',
+            'posts_per_page' => -1,
+            'post_status'    => ['publish', 'private'],
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+        ]);
+
+        $items = [];
+        foreach ($posts as $program) {
+            $items[] = self::format_program_item($program);
+        }
+
+        return $items;
+    }
+
     /* ================================================================== */
     /*  Day Colors                                                         */
     /* ================================================================== */
@@ -582,6 +611,7 @@ final class RestApi
 
     private static function format_slot(\WP_Post $post): array
     {
+        $program_id = (int) get_post_meta($post->ID, '_programmo_program_id', true);
         $area_id   = (int) get_post_meta($post->ID, '_programmo_area_id', true);
         $event_ids = self::read_slot_event_ids($post->ID);
         $slot_start = (string) get_post_meta($post->ID, '_programmo_start_time', true);
@@ -661,6 +691,8 @@ final class RestApi
         return [
             'id'          => (int) $post->ID,
             'title'       => $post->post_title,
+            'program_id'  => $program_id,
+            'program'     => self::format_program_reference($program_id),
             'weekday'     => (string) get_post_meta($post->ID, '_programmo_weekday', true),
             'start'       => $slot_start,
             'end'         => $slot_end,
@@ -757,6 +789,10 @@ final class RestApi
     private static function slot_create_args(): array
     {
         return [
+            'program_id' => [
+                'type'    => 'integer',
+                'default' => 0,
+            ],
             'weekday' => [
                 'type'              => 'string',
                 'required'          => true,
@@ -865,5 +901,39 @@ final class RestApi
             'okja_person_ids'      => $type === EventsBridge::PROGRAMMO_POST_TYPE_OFFER ? EventsBridge::get_local_offer_person_ids($id, 'okja') : [],
             'edit_url'            => (string) get_edit_post_link($id, 'raw'),
         ];
+    }
+
+    private static function format_program_item(\WP_Post $post): array
+    {
+        return [
+            'id'       => (int) $post->ID,
+            'title'    => (string) $post->post_title,
+            'color'    => (string) get_post_meta($post->ID, '_programmo_program_color', true),
+            'edit_url' => (string) get_edit_post_link($post->ID, 'raw'),
+        ];
+    }
+
+    private static function format_program_reference(int $program_id): array
+    {
+        if ($program_id <= 0) {
+            return [
+                'id' => 0,
+                'title' => __('Standard', 'programmo'),
+                'color' => '',
+                'edit_url' => '',
+            ];
+        }
+
+        $program = get_post($program_id);
+        if (!$program instanceof \WP_Post || $program->post_type !== 'programmo_program') {
+            return [
+                'id' => $program_id,
+                'title' => '',
+                'color' => '',
+                'edit_url' => '',
+            ];
+        }
+
+        return self::format_program_item($program);
     }
 }

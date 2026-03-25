@@ -20,6 +20,7 @@ Bereits umgesetzt:
 
 1. Plugin-Grundgerüst und Aktivierungslogik
 2. CPTs:
+   - `programmo_program` (Programm)
    - `programmo_area` (Offener Bereich)
    - `programmo_person` (Personen)
    - `programmo_offer` (eigene lokale Angebote)
@@ -39,27 +40,35 @@ Bereits umgesetzt:
    - Lokale Angebote bleiben linklos, OKJA-Angebote behalten ihren Single-Link im Frontend
 6. Shortcode:
    - `[programmo_weekplan]`
+   - optional auch mit `[programmo_weekplan program_id="123"]`
    - Responsive Darstellung
    - Details aufklappbar (`<details>`)
    - Personen- und Taxonomie-Badges auf Angebotskacheln
+7. Mehrere Programme:
+   - Mehrere eigenständige Programme können parallel angelegt werden.
+   - Jeder Slot kann einem bestimmten Programm zugeordnet werden.
+   - Im Gutenberg-Block lässt sich auswählen, welches Programm dargestellt werden soll.
 
 ## Dashboard-Workflow
 
-1. Eigene Angebote können direkt im ProgrammO-Dashboard in der Angebots-Sidebar angelegt werden.
-2. Dabei sind Titel, Kurzbeschreibung und Personenzuordnung möglich.
-3. Personen können aus `programmo_person` und, wenn vorhanden, zusätzlich aus dem OKJA-Personenpool kommen.
-4. Neue lokale Angebote erscheinen sofort im Angebots-Pool und können per Drag & Drop Slots zugeordnet werden.
+1. Programme können als eigene Wochenpläne angelegt werden.
+2. Im Dashboard lässt sich auswählen, für welches Programm die Matrix angezeigt wird.
+3. Eigene Angebote können direkt im ProgrammO-Dashboard in der Angebots-Sidebar angelegt werden.
+4. Dabei sind Titel, Kurzbeschreibung und Personenzuordnung möglich.
+5. Personen können aus `programmo_person` und, wenn vorhanden, zusätzlich aus dem OKJA-Personenpool kommen.
+6. Neue lokale Angebote erscheinen sofort im Angebots-Pool und können per Drag & Drop Slots zugeordnet werden.
 
 ## Installation
 
 1. Ordner als Plugin in WordPress einbinden (`wp-content/plugins/programmo`).
 2. Plugin aktivieren.
 3. Inhalte anlegen:
+   - Programme
    - Offene Bereiche
    - Personen
    - Angebote (optional lokal in ProgrammO oder extern über Events_OKJA)
    - Wochenplan Slots
-4. Seite erstellen und Shortcode `[programmo_weekplan]` einfügen.
+4. Seite erstellen und Block „ProgrammO Wochenplan“ oder Shortcode `[programmo_weekplan]` einfügen.
 
 ## Geplante nächste Schritte
 

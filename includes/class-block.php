@@ -64,6 +64,7 @@ final class Block
             ],
             'globalDays' => (array) Dashboard::get_option('weekdays_visible', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']),
             'globalMobileCollapse' => (bool) Dashboard::get_option('mobile_collapse', true),
+            'programs' => RestApi::get_programs_payload(),
         ]);
 
         // Register the block type via block.json
@@ -89,6 +90,7 @@ final class Block
     {
         $options = [
             'title'          => sanitize_text_field($attributes['title'] ?? ''),
+            'program_id'     => absint($attributes['programId'] ?? 0),
             'show_valid_from' => (bool) ($attributes['showValidFrom'] ?? true),
             'show_team'       => (bool) ($attributes['showTeam'] ?? true),
             'show_badges'     => (bool) ($attributes['showBadges'] ?? true),
@@ -101,6 +103,9 @@ final class Block
             'show_tooltips'     => (bool) ($attributes['showTooltips'] ?? true),
             'override_days'   => (array) ($attributes['overrideDays'] ?? []),
             'back_url'        => sanitize_url($attributes['backUrl'] ?? ''),
+            'show_empty_slot_text' => (bool) ($attributes['showEmptySlotText'] ?? true),
+            'empty_slot_text'      => sanitize_text_field($attributes['emptySlotText'] ?? 'Offener Bereich – komm einfach vorbei!'),
+
         ];
 
         // Build wrapper classes from block supports
